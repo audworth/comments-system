@@ -1,5 +1,5 @@
 schema:
-  - graph/schema/*.graphqls
+  - internal/transport/graph/schema/*.graphqls
 
 exec:
   layout: single-file
@@ -16,8 +16,6 @@ resolver:
   package: resolver
   filename_template: "{name}.resolvers.go"
   omit_template_comment: false
-
-local_prefix: "github.com/audworth/comments-system"
 
 call_argument_directives_with_null: true
 
