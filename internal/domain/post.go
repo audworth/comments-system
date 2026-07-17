@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,4 +24,32 @@ func (p *Post) SetCommentEnabled(userID uuid.UUID, enabled bool) error {
 	p.CommentsEnabled = enabled
 
 	return nil
+}
+
+func NewPost(
+	id uuid.UUID,
+	authorID uuid.UUID,
+	title string,
+	body string,
+	commentsEnabled bool,
+	createdAt time.Time,
+) (*Post, error) {
+	title = strings.TrimSpace(title)
+	if title == "" {
+		return &Post{}, ErrEmptyPostTitle
+	}
+
+	body = strings.TrimSpace(body)
+	if body == "" {
+		return &Post{}, ErrEmptyPostBody
+	}
+
+	return &Post{
+		ID:              id,
+		AuthorID:        authorID,
+		Title:           title,
+		Body:            body,
+		CommentsEnabled: commentsEnabled,
+		CreatedAt:       createdAt,
+	}, nil
 }
