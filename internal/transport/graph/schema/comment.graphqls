@@ -1,0 +1,16 @@
+type Comment {
+    id: ID!
+    postId: ID!
+    parentId: ID
+    author: User!
+    body: String!
+    createdAt: Time!
+
+    replies(first: Int! = 20, after: Cursor): CommentConnection!
+}
+
+input CreateCommentInput {
+    postId: ID!
+    parentId: ID
+    body: String!
+}

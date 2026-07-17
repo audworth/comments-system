@@ -1,0 +1,59 @@
+schema:
+  - graph/schema/*.graphqls
+
+exec:
+  layout: single-file
+  package: generated
+  filename: internal/transport/graph/generated/generated.go
+
+model:
+  filename: internal/transport/graph/model/models_gen.go
+  package: model
+
+resolver:
+  layout: follow-schema
+  dir: internal/transport/graph/resolver
+  package: resolver
+  filename_template: "{name}.resolvers.go"
+  omit_template_comment: false
+
+local_prefix: "github.com/audworth/comments-system"
+
+call_argument_directives_with_null: true
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
+  UUID:
+    model:
+      - github.com/99designs/gqlgen/graphql.UUID
+
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int32
+  Int64:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+
+  Cursor:
+    model:
+      - github.com/audworth/comments-system/internal/transport/graph/graphscalar.Cursor
+
+  Post:
+    fields:
+      author:
+        resolver: true
+      comments:
+        resolver: true
+
+  Comment:
+    fields:
+      author:
+        resolver: true
+      replies:
+        resolver: true

@@ -1,0 +1,25 @@
+type Query {
+    posts(first: Int! = 20, after: Cursor): PostConnection!
+
+    post(id: ID!): Post
+    comment(id: ID!): Comment
+
+    comments(
+        postId: ID!
+        parentId: ID
+        first: Int! = 20
+        after: Cursor
+    ): CommentConnection!
+}
+
+type Mutation {
+    createPost(input: CreatePostInput!): Post!
+
+    setPostCommentsEnabled(input: SetPostCommentsEnabledInput!): Post!
+
+    createComment(input: CreateCommentInput!): Comment!
+}
+
+type Subscription {
+    commentCreated(postId: ID!): Comment!
+}

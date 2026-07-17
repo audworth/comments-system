@@ -1,0 +1,21 @@
+type Post {
+    id: ID!
+    author: User!
+    title: String!
+    body: String!
+    commentsEnabled: Boolean!
+    createdAt: Time!
+    updatedAt: Time!
+
+    comments(first: Int! = 20, after: Cursor): CommentConnection!
+}
+
+input CreatePostInput {
+    title: String!
+    body: String!
+}
+
+input SetPostCommentsEnabledInput {
+    postId: ID!
+    enabled: Boolean!
+}
