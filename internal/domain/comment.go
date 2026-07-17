@@ -24,22 +24,22 @@ func NewComment(
 	authorID uuid.UUID,
 	body string,
 	now time.Time,
-) (Comment, error) {
+) (*Comment, error) {
 	body = strings.TrimSpace(body)
 
 	if body == "" {
-		return Comment{}, ErrEmptyComment
+		return &Comment{}, ErrEmptyComment
 	}
 
 	if utf8.RuneCountInString(body) > 2000 {
-		return Comment{}, ErrCommentTooLong
+		return &Comment{}, ErrCommentTooLong
 	}
 
 	if parentID != nil && *parentID == id {
-		return Comment{}, ErrSelfParent
+		return &Comment{}, ErrSelfParent
 	}
 
-	return Comment{
+	return &Comment{
 		ID:        id,
 		PostID:    postID,
 		ParentID:  parentID,
