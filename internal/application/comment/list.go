@@ -2,6 +2,7 @@ package comment
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/audworth/comments-system/internal/domain"
@@ -26,14 +27,14 @@ type Page struct {
 	HasNext   bool
 }
 
-func (s *Service) List(
-	ctx context.Context,
-	params ListParams,
-) (*Page, error) {
+func (s *Service) List(ctx context.Context, params ListParams) (*Page, error) {
+	if params.Limit < 1 || params.Limit > 100 {
+		return nil, ErrInvalidPageSize
+	}
+
 	commsPage, err := s.repo.ListChildren(ctx, params)
 	if err != nil {
-		// TODO: wrap in useful format
-		return nil, err
+		return nil, fmt.Errorf("list comments for post %s: %w", params.PostID, err)
 	}
 
 	return commsPage, nil

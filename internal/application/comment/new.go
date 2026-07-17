@@ -2,6 +2,7 @@ package comment
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/audworth/comments-system/internal/domain"
@@ -24,16 +25,13 @@ func (s *Service) PublishNewComment(ctx context.Context, params *NewCommentParam
 		params.Body,
 		time.Now().UTC(),
 	)
-
 	if err != nil {
-		// TODO: wrap in useful format
-		return nil, err
+		return nil, fmt.Errorf("invalid comment: %w", err)
 	}
 
 	created, err := s.repo.NewComment(ctx, comm)
 	if err != nil {
-		// TODO: wrap in useful format
-		return nil, err
+		return nil, fmt.Errorf("publish comment: %w", err)
 	}
 
 	// TODO: handle error and log

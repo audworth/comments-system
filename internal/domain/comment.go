@@ -23,7 +23,7 @@ func NewComment(
 	parentID *uuid.UUID,
 	authorID uuid.UUID,
 	body string,
-	now time.Time,
+	createdAt time.Time,
 ) (*Comment, error) {
 	body = strings.TrimSpace(body)
 
@@ -45,6 +45,6 @@ func NewComment(
 		ParentID:  parentID,
 		AuthorID:  authorID,
 		Body:      body,
-		CreatedAt: now,
+		CreatedAt: createdAt,
 	}, nil
 }
