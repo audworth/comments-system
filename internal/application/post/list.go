@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/audworth/comments-system/internal/application"
 	"github.com/audworth/comments-system/internal/domain"
 	"github.com/google/uuid"
 )
@@ -27,7 +28,7 @@ type Page struct {
 
 func (s *Service) List(ctx context.Context, params ListParams) (*Page, error) {
 	if params.Limit < 1 || params.Limit > 100 {
-		return nil, ErrInvalidPageSize
+		return nil, application.ErrInvalidPageSize
 	}
 
 	postPage, err := s.repo.List(ctx, params)
