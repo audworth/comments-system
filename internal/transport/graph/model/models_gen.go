@@ -2,5 +2,75 @@
 
 package model
 
+import (
+	"time"
+
+	"github.com/audworth/comments-system/internal/transport/graph/graphscalar"
+)
+
+type Comment struct {
+	ID        string             `json:"id"`
+	PostID    string             `json:"postId"`
+	ParentID  *string            `json:"parentId,omitempty"`
+	Author    *User              `json:"author"`
+	Body      string             `json:"body"`
+	CreatedAt time.Time          `json:"createdAt"`
+	Replies   *CommentConnection `json:"replies"`
+}
+
+type CommentConnection struct {
+	Nodes    []*Comment `json:"nodes"`
+	PageInfo *PageInfo  `json:"pageInfo"`
+}
+
+type CreateCommentInput struct {
+	PostID   string  `json:"postId"`
+	ParentID *string `json:"parentId,omitempty"`
+	Body     string  `json:"body"`
+}
+
+type CreatePostInput struct {
+	Title string `json:"title"`
+	Body  string `json:"body"`
+}
+
+type Mutation struct {
+}
+
+type PageInfo struct {
+	EndCursor   *graphscalar.Cursor `json:"endCursor,omitempty"`
+	HasNextPage bool                `json:"hasNextPage"`
+}
+
+type Post struct {
+	ID              string             `json:"id"`
+	Author          *User              `json:"author"`
+	Title           string             `json:"title"`
+	Body            string             `json:"body"`
+	CommentsEnabled bool               `json:"commentsEnabled"`
+	CreatedAt       time.Time          `json:"createdAt"`
+	UpdatedAt       time.Time          `json:"updatedAt"`
+	Comments        *CommentConnection `json:"comments"`
+}
+
+type PostConnection struct {
+	Nodes    []*Post   `json:"nodes"`
+	PageInfo *PageInfo `json:"pageInfo"`
+}
+
 type Query struct {
+}
+
+type SetPostCommentsEnabledInput struct {
+	PostID  string `json:"postId"`
+	Enabled bool   `json:"enabled"`
+}
+
+type Subscription struct {
+}
+
+type User struct {
+	ID          string `json:"id"`
+	Username    string `json:"username"`
+	DisplayName string `json:"displayName"`
 }

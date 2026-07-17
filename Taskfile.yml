@@ -1,0 +1,6 @@
+version: "3"
+
+tasks:
+  generate:
+    desc: сгенерировать GraphQL
+    cmd: go tool gqlgen generate
