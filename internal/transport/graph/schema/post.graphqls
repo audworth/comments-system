@@ -11,11 +11,13 @@ type Post {
 }
 
 input CreatePostInput {
+    authorId: ID!
     title: String!
     body: String!
 }
 
 input SetPostCommentsEnabledInput {
     postId: ID!
+    authorId: ID!
     enabled: Boolean!
 }

@@ -12,5 +12,6 @@ type Comment {
 input CreateCommentInput {
     postId: ID!
     parentId: ID
+    authorId: ID!
     body: String!
 }

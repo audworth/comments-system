@@ -26,12 +26,14 @@ type CommentConnection struct {
 type CreateCommentInput struct {
 	PostID   string  `json:"postId"`
 	ParentID *string `json:"parentId,omitempty"`
+	AuthorID string  `json:"authorId"`
 	Body     string  `json:"body"`
 }
 
 type CreatePostInput struct {
-	Title string `json:"title"`
-	Body  string `json:"body"`
+	AuthorID string `json:"authorId"`
+	Title    string `json:"title"`
+	Body     string `json:"body"`
 }
 
 type Mutation struct {
@@ -62,8 +64,9 @@ type Query struct {
 }
 
 type SetPostCommentsEnabledInput struct {
-	PostID  string `json:"postId"`
-	Enabled bool   `json:"enabled"`
+	PostID   string `json:"postId"`
+	AuthorID string `json:"authorId"`
+	Enabled  bool   `json:"enabled"`
 }
 
 type Subscription struct {

@@ -543,6 +543,7 @@ type Subscription {
 input CreateCommentInput {
     postId: ID!
     parentId: ID
+    authorId: ID!
     body: String!
 }
 `, BuiltIn: false},
@@ -583,12 +584,14 @@ type CommentConnection {
 }
 
 input CreatePostInput {
+    authorId: ID!
     title: String!
     body: String!
 }
 
 input SetPostCommentsEnabledInput {
     postId: ID!
+    authorId: ID!
     enabled: Boolean!
 }
 `, BuiltIn: false},
@@ -3207,7 +3210,7 @@ func (ec *executionContext) unmarshalInputCreateCommentInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"postId", "parentId", "body"}
+	fieldsInOrder := [...]string{"postId", "parentId", "authorId", "body"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3228,6 +3231,13 @@ func (ec *executionContext) unmarshalInputCreateCommentInput(ctx context.Context
 				return it, err
 			}
 			it.ParentID = data
+		case "authorId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authorId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthorID = data
 		case "body":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("body"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -3251,13 +3261,20 @@ func (ec *executionContext) unmarshalInputCreatePostInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"title", "body"}
+	fieldsInOrder := [...]string{"authorId", "title", "body"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "authorId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authorId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthorID = data
 		case "title":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -3288,7 +3305,7 @@ func (ec *executionContext) unmarshalInputSetPostCommentsEnabledInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"postId", "enabled"}
+	fieldsInOrder := [...]string{"postId", "authorId", "enabled"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3302,6 +3319,13 @@ func (ec *executionContext) unmarshalInputSetPostCommentsEnabledInput(ctx contex
 				return it, err
 			}
 			it.PostID = data
+		case "authorId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authorId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthorID = data
 		case "enabled":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
 			data, err := ec.unmarshalNBoolean2bool(ctx, v)
