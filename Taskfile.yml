@@ -1,6 +1,52 @@
 version: "3"
+vars:
+  APP_NAME: comments-system
+  MAIN_PACKAGE: ./cmd
+  GO_PACKAGES: ./...
+
+  COVERAGE_FILE: coverage.out
+  COVERAGE_HTML: coverage.html
+  MIN_COVERAGE: "90"
 
 tasks:
+  default:
+    desc: доступные таски
+    silent: true
+    cmds:
+      - task --list
+
+  tidy:
+    desc: обновить go.mod и go.sum
+    cmds:
+      - go mod tidy
+
   generate:
-    desc: сгенерировать GraphQL
-    cmd: go tool gqlgen generate
+    desc: сгеренерировать код из схем GraphQL
+    cmds:
+      - go tool gqlgen generate
+
+  fmt:
+    desc: форматировать код
+    cmds:
+      - go fmt {{.GO_PACKAGES}}
+      - golangci-lint fmt {{.GO_PACKAGES}}
+
+  lint:
+    desc: запустить линтер
+    cmds:
+      - golangci-lint run {{.GO_PACKAGES}}
+
+  test:
+    desc: запустить юнит тесты
+    cmds:
+      - >-
+        go test
+        -race
+        -coverprofile={{.COVERAGE_FILE}}
+        {{.GO_PACKAGES}}
+
+  coverage:
+    desc: запустить юнит тесты и показать coverage
+    cmds:
+      - task: test
+      - go tool cover -func={{.COVERAGE_FILE}}

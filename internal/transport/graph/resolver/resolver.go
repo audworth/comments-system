@@ -1,3 +1,4 @@
+//go:generate go tool gqlgen generate
 package resolver
 
 // This file will not be regenerated automatically.

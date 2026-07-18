@@ -1,0 +1,112 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: standard
+
+  enable:
+    - rowserrcheck
+    - sqlclosecheck
+
+    - contextcheck
+    - containedctx
+    - fatcontext
+    - noctx
+
+    - errorlint
+    - nilerr
+    - nilnesserr
+    - nilnil
+    - wrapcheck
+
+    - errchkjson
+    - musttag
+
+    - exhaustive
+    - durationcheck
+
+    - gocritic
+    - gosec
+    - misspell
+    - nolintlint
+    - revive
+    - wastedassign
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+
+    exhaustive:
+      check:
+        - switch
+        - map
+
+    govet:
+      enable-all: true
+
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+
+    revive:
+      rules:
+        - name: context-as-argument
+        - name: early-return
+        - name: error-naming
+        - name: error-return
+        - name: error-strings
+        - name: exported
+          disabled: true
+        - name: receiver-naming
+        - name: redefines-builtin-id
+        - name: string-of-int
+        - name: time-equal
+        - name: unconditional-recursion
+        - name: unreachable-code
+        - name: unused-parameter
+        - name: var-naming
+
+    staticcheck:
+      checks:
+        - all
+
+  exclusions:
+    generated: strict
+
+    presets:
+      - common-false-positives
+      - std-error-handling
+
+    rules:
+      - path: '(.+)_test\.go'
+        linters:
+          - gosec
+          - wrapcheck
+          - musttag
+
+      - path: '(^|/)generated\.go$'
+        linters:
+          - all
+
+      - path: '(^|/)models_gen\.go$'
+        linters:
+          - all
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+  exclusions:
+    generated: strict
+    paths:
+      - '(^|/)generated\.go$'
+      - '(^|/)models_gen\.go$'
