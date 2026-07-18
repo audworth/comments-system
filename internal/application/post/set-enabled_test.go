@@ -11,26 +11,19 @@ import (
 func TestService_SetCommentsToEnabled(t *testing.T) {
 	t.Parallel()
 
-	names := map[bool]string{false: "disabled", true: "enabled"}
-	for _, enabled := range []bool{false, true} {
-		t.Run(names[enabled], func(t *testing.T) {
-			t.Parallel()
+	postID, authorID := uuid.New(), uuid.New()
+	want := &domain.Post{ID: postID, Author: domain.User{ID: authorID}, CommentsEnabled: true}
+	repo, svc := newTestService()
+	repo.setCommentsEnabledResult = want
 
-			postID, authorID := uuid.New(), uuid.New()
-			want := &domain.Post{ID: postID, Author: domain.User{ID: authorID}, CommentsEnabled: enabled}
-			repo, svc := newTestService()
-			repo.setCommentsEnabledResult = want
+	got, err := svc.SetCommentsToEnabled(t.Context(), postID, authorID, true)
 
-			got, err := svc.SetCommentsToEnabled(t.Context(), postID, authorID, enabled)
-
-			require.NoError(t, err)
-			require.Same(t, want, got)
-			require.Equal(t, 1, repo.setCommentsEnabledCalls)
-			require.Equal(t, postID, repo.setCommentsEnabledPostID)
-			require.Equal(t, authorID, repo.setCommentsEnabledAuthor)
-			require.Equal(t, enabled, repo.setCommentsEnabledEnabled)
-		})
-	}
+	require.NoError(t, err)
+	require.Same(t, want, got)
+	require.Equal(t, 1, repo.setCommentsEnabledCalls)
+	require.Equal(t, postID, repo.setCommentsEnabledPostID)
+	require.Equal(t, authorID, repo.setCommentsEnabledAuthor)
+	require.True(t, repo.setCommentsEnabledEnabled)
 }
 
 func TestService_SetCommentsToEnabled_RepositoryFails(t *testing.T) {

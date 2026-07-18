@@ -28,7 +28,7 @@ func TestService_List(t *testing.T) {
 			CreatedAt: time.Now().UTC(),
 			ID:        uuid.New(),
 		},
-		HasNext: true,
+		HasNextPage: true,
 	}
 
 	repo, _, svc := newPublishTestService()

@@ -23,9 +23,9 @@ type ListParams struct {
 }
 
 type Page struct {
-	Comments  []domain.Comment
-	EndCursor *CommentPosition
-	HasNext   bool
+	Comments    []domain.Comment
+	EndCursor   *CommentPosition
+	HasNextPage bool
 }
 
 func (s *Service) List(ctx context.Context, params *ListParams) (*Page, error) {

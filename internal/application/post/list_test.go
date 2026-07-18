@@ -17,7 +17,7 @@ func TestService_List(t *testing.T) {
 	after := &Position{CreatedAt: time.Now().UTC(), ID: uuid.New()}
 	params := ListParams{Limit: 25, After: after}
 	want := &Page{
-		Items:       []domain.Post{{ID: uuid.New()}},
+		Posts:       []domain.Post{{ID: uuid.New()}},
 		Next:        &Position{CreatedAt: time.Now().UTC(), ID: uuid.New()},
 		HasNextPage: true,
 	}

@@ -21,7 +21,7 @@ type ListParams struct {
 }
 
 type Page struct {
-	Items       []domain.Post
+	Posts       []domain.Post
 	Next        *Position
 	HasNextPage bool
 }
