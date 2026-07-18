@@ -10,12 +10,12 @@ import (
 )
 
 var (
-	ErrEmptyComment     = errors.New("comment is empty")
-	ErrCommentTooLong   = errors.New("comment is too long")
-	ErrSelfParent       = errors.New("comment cannot reference itself")
-	ErrNotPostAuthor    = errors.New("user is not the post author")
-	ErrCommentsDisabled = errors.New("comments are disabled")
+	ErrEmptyComment   = errors.New("comment is empty")
+	ErrCommentTooLong = errors.New("comment is too long")
+	ErrSelfParent     = errors.New("comment cannot reference itself")
 )
+
+const MaxCommentLength = 2000
 
 type Comment struct {
 	ID        uuid.UUID
@@ -40,7 +40,7 @@ func NewComment(
 		return &Comment{}, ErrEmptyComment
 	}
 
-	if utf8.RuneCountInString(body) > 2000 {
+	if utf8.RuneCountInString(body) > MaxCommentLength {
 		return &Comment{}, ErrCommentTooLong
 	}
 

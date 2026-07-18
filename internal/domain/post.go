@@ -11,6 +11,7 @@ import (
 var (
 	ErrEmptyPostTitle = errors.New("post title must not be empty")
 	ErrEmptyPostBody  = errors.New("post body must not be empty")
+	ErrNotPostAuthor  = errors.New("user is not the post author")
 )
 
 type Post struct {
