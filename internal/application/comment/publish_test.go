@@ -1,7 +1,6 @@
 package comment
 
 import (
-	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -10,13 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
-
-func newPublishTestService() (*fakeRepo, *notifierSpy, *Service) {
-	repo := &fakeRepo{}
-	notifier := &notifierSpy{}
-
-	return repo, notifier, NewService(repo, notifier)
-}
 
 func TestService_PublishNewComment(t *testing.T) {
 	t.Parallel()
@@ -73,7 +65,7 @@ func TestService_PublishNewComment_WithParent(t *testing.T) {
 func TestService_PublishNewComment_ReturnsAndNotifiesRepositoryResult(t *testing.T) {
 	t.Parallel()
 
-	repositoryResult := &domain.Comment{
+	repoResult := &domain.Comment{
 		ID:        uuid.New(),
 		PostID:    uuid.New(),
 		AuthorID:  uuid.New(),
@@ -81,18 +73,18 @@ func TestService_PublishNewComment_ReturnsAndNotifiesRepositoryResult(t *testing
 		CreatedAt: time.Now().UTC().Add(time.Second),
 	}
 	repo, notif, svc := newPublishTestService()
-	repo.newCommentResult = repositoryResult
+	repo.newCommentResult = repoResult
 
 	created, err := svc.PublishNewComment(t.Context(), &NewCommentParams{
-		PostID:   repositoryResult.PostID,
-		AuthorID: repositoryResult.AuthorID,
+		PostID:   repoResult.PostID,
+		AuthorID: repoResult.AuthorID,
 		Body:     "исходный",
 	})
 
 	require.NoError(t, err)
-	require.Same(t, repositoryResult, created)
+	require.Same(t, repoResult, created)
 	require.Equal(t, 1, notif.notifyCreatedCalls)
-	require.Same(t, repositoryResult, notif.notifyCreatedInput)
+	require.Same(t, repoResult, notif.notifyCreatedInput)
 	require.NotEqual(t, repo.newCommentInput.ID, created.ID)
 }
 
@@ -104,7 +96,7 @@ func TestService_PublishNewComment_AcceptsValidBody(t *testing.T) {
 		body     string
 		expected string
 	}{
-		{name: "текс", body: "комментарий", expected: "комментарий"},
+		{name: "текст", body: "комментарий", expected: "комментарий"},
 		{name: "whitespaces", body: "  комментарий\n\r\r\r\n\n\n\t\t\t", expected: "комментарий"},
 		{name: "2000 ASCII", body: strings.Repeat("a", 2000), expected: strings.Repeat("a", 2000)},
 		{name: "2000 UTF-8", body: strings.Repeat("я", 2000), expected: strings.Repeat("я", 2000)},
@@ -168,7 +160,7 @@ func TestService_PublishNewComment_RepositoryFails(t *testing.T) {
 	t.Parallel()
 
 	repo, notifier, service := newPublishTestService()
-	repo.newCommentErr = errors.New("db error")
+	repo.newCommentErr = errRepo
 
 	created, err := service.PublishNewComment(t.Context(), &NewCommentParams{
 		PostID:   uuid.New(),
@@ -187,7 +179,7 @@ func TestService_PublishNewComment_IgnoresNotifierFail(t *testing.T) {
 	t.Parallel()
 
 	repo, notifier, svc := newPublishTestService()
-	notifier.err = errors.New("unavailable")
+	notifier.err = errNotifier
 
 	created, err := svc.PublishNewComment(t.Context(), &NewCommentParams{
 		PostID:   uuid.New(),

@@ -10,7 +10,7 @@ import (
 type Repository interface {
 	NewComment(ctx context.Context, comment *domain.Comment) (*domain.Comment, error)
 	CommentByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error)
-	ListChildren(ctx context.Context, params ListParams) (*Page, error)
+	ListChildren(ctx context.Context, params *ListParams) (*Page, error)
 }
 
 type Notifier interface {

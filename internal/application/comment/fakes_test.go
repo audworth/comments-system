@@ -2,9 +2,15 @@ package comment
 
 import (
 	"context"
+	"errors"
 
 	"github.com/audworth/comments-system/internal/domain"
 	"github.com/google/uuid"
+)
+
+var (
+	errRepo     = errors.New("db unavailable")
+	errNotifier = errors.New("notifier unavailable")
 )
 
 type fakeRepo struct {
@@ -13,6 +19,16 @@ type fakeRepo struct {
 	newCommentCalls  int
 	newCommentInput  *domain.Comment
 	onNewComment     func(*domain.Comment)
+
+	commentByIDResult *domain.Comment
+	commentByIDErr    error
+	commentByIDCalls  int
+	commentByIDInput  uuid.UUID
+
+	listChildrenResult *Page
+	listChildrenErr    error
+	listChildrenCalls  int
+	listChildrenInput  *ListParams
 }
 
 func (f *fakeRepo) NewComment(_ context.Context, comment *domain.Comment) (*domain.Comment, error) {
@@ -32,12 +48,18 @@ func (f *fakeRepo) NewComment(_ context.Context, comment *domain.Comment) (*doma
 	return comment, nil
 }
 
-func (f *fakeRepo) CommentByID(context.Context, uuid.UUID) (*domain.Comment, error) {
-	panic("TODO")
+func (f *fakeRepo) CommentByID(_ context.Context, id uuid.UUID) (*domain.Comment, error) {
+	f.commentByIDCalls++
+	f.commentByIDInput = id
+
+	return f.commentByIDResult, f.commentByIDErr
 }
 
-func (f *fakeRepo) ListChildren(context.Context, ListParams) (*Page, error) {
-	panic("TODO")
+func (f *fakeRepo) ListChildren(_ context.Context, params *ListParams) (*Page, error) {
+	f.listChildrenCalls++
+	f.listChildrenInput = params
+
+	return f.listChildrenResult, f.listChildrenErr
 }
 
 type notifierSpy struct {
@@ -56,4 +78,11 @@ func (s *notifierSpy) NotifyCreated(_ context.Context, comment *domain.Comment) 
 	}
 
 	return s.err
+}
+
+func newPublishTestService() (*fakeRepo, *notifierSpy, *Service) {
+	repo := &fakeRepo{}
+	notifier := &notifierSpy{}
+
+	return repo, notifier, NewService(repo, notifier)
 }
