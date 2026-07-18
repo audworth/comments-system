@@ -14,18 +14,12 @@ type Repository interface {
 	SetCommentsEnabled(ctx context.Context, postID uuid.UUID, author uuid.UUID, enabled bool) (*domain.Post, error)
 }
 
-type Notifier interface {
-	NotifyCreated(ctx context.Context, comment *domain.Comment) error
-}
-
 type Service struct {
-	repo     Repository
-	notifier Notifier
+	repo Repository
 }
 
-func NewService(repo Repository, notifier Notifier) *Service {
+func NewService(repo Repository) *Service {
 	return &Service{
-		repo:     repo,
-		notifier: notifier,
+		repo: repo,
 	}
 }
