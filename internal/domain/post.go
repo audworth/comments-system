@@ -15,15 +15,16 @@ var (
 
 type Post struct {
 	ID              uuid.UUID
-	AuthorID        uuid.UUID
 	Title           string
 	Body            string
 	CommentsEnabled bool
+	Author          User
 	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 func (p *Post) SetCommentEnabled(userID uuid.UUID, enabled bool) error {
-	if p.AuthorID != userID {
+	if p.Author.ID != userID {
 		return ErrNotPostAuthor
 	}
 
@@ -34,7 +35,7 @@ func (p *Post) SetCommentEnabled(userID uuid.UUID, enabled bool) error {
 
 func NewPost(
 	id uuid.UUID,
-	authorID uuid.UUID,
+	author User,
 	title string,
 	body string,
 	commentsEnabled bool,
@@ -52,10 +53,11 @@ func NewPost(
 
 	return &Post{
 		ID:              id,
-		AuthorID:        authorID,
+		Author:          author,
 		Title:           title,
 		Body:            body,
 		CommentsEnabled: commentsEnabled,
 		CreatedAt:       createdAt,
+		UpdatedAt:       createdAt,
 	}, nil
 }

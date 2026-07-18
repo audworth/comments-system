@@ -17,7 +17,7 @@ func TestService_SetCommentsToEnabled(t *testing.T) {
 			t.Parallel()
 
 			postID, authorID := uuid.New(), uuid.New()
-			want := &domain.Post{ID: postID, AuthorID: authorID, CommentsEnabled: enabled}
+			want := &domain.Post{ID: postID, Author: domain.User{ID: authorID}, CommentsEnabled: enabled}
 			repo, svc := newTestService()
 			repo.setCommentsEnabledResult = want
 

@@ -19,7 +19,7 @@ type NewPostParams struct {
 func (s *Service) PublishNewPost(ctx context.Context, params NewPostParams) (*domain.Post, error) {
 	post, err := domain.NewPost(
 		uuid.New(),
-		params.AuthorID,
+		domain.User{ID: params.AuthorID},
 		params.Title,
 		params.Body,
 		params.CommentsEnabled,
