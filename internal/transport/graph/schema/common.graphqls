@@ -3,21 +3,10 @@ scalar Cursor
 
 type User {
     id: ID!
-    username: String!
-    displayName: String!
+    name: String!
 }
 
 type PageInfo {
     endCursor: Cursor
     hasNextPage: Boolean!
-}
-
-type PostConnection {
-    nodes: [Post!]!
-    pageInfo: PageInfo!
-}
-
-type CommentConnection {
-    nodes: [Comment!]!
-    pageInfo: PageInfo!
 }

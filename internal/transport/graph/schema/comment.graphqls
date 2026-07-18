@@ -2,11 +2,17 @@ type Comment {
     id: ID!
     postId: ID!
     parentId: ID
+    authorId: ID!
     author: User!
     body: String!
     createdAt: Time!
 
     replies(first: Int! = 20, after: Cursor): CommentConnection!
+}
+
+type CommentConnection {
+    nodes: [Comment!]!
+    pageInfo: PageInfo!
 }
 
 input CreateCommentInput {

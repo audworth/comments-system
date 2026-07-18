@@ -10,6 +10,11 @@ type Post {
     comments(first: Int! = 20, after: Cursor): CommentConnection!
 }
 
+type PostConnection {
+    nodes: [Post!]!
+    pageInfo: PageInfo!
+}
+
 input CreatePostInput {
     authorId: ID!
     title: String!
