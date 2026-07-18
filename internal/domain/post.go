@@ -1,10 +1,16 @@
 package domain
 
 import (
+	"errors"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+)
+
+var (
+	ErrEmptyPostTitle = errors.New("post title must not be empty")
+	ErrEmptyPostBody  = errors.New("post body must not be empty")
 )
 
 type Post struct {
