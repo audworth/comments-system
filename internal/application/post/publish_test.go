@@ -25,7 +25,7 @@ func TestService_PublishNewPost(t *testing.T) {
 		},
 	)
 
-	created, err := svc.PublishNewPost(t.Context(), NewPostParams{
+	created, err := svc.PublishNewPost(t.Context(), &NewPostParams{
 		AuthorID:        authorID,
 		Title:           "title",
 		Body:            "body",
@@ -48,7 +48,7 @@ func TestService_PublishNewPost_RejectsInvalidPost(t *testing.T) {
 	t.Parallel()
 
 	_, svc := newTestService(t)
-	created, err := svc.PublishNewPost(t.Context(), NewPostParams{
+	created, err := svc.PublishNewPost(t.Context(), &NewPostParams{
 		AuthorID: uuid.New(),
 		Title:    "",
 		Body:     "body",
@@ -79,7 +79,7 @@ func TestService_PublishNewPost_ReturnsRepositoryResult(t *testing.T) {
 		},
 	)
 
-	created, err := svc.PublishNewPost(t.Context(), NewPostParams{
+	created, err := svc.PublishNewPost(t.Context(), &NewPostParams{
 		AuthorID: repositoryResult.Author.ID,
 		Title:    "заголовок1",
 		Body:     "тело1",
@@ -96,7 +96,7 @@ func TestService_PublishNewPost_RepositoryFails(t *testing.T) {
 	repo, svc := newTestService(t)
 	repo.EXPECT().NewPost(gomock.Any(), gomock.Any()).Return(nil, ErrNotFound)
 
-	created, err := svc.PublishNewPost(t.Context(), NewPostParams{
+	created, err := svc.PublishNewPost(t.Context(), &NewPostParams{
 		AuthorID: uuid.New(),
 		Title:    "заголовок",
 		Body:     "тело",

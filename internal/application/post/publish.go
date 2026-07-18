@@ -16,7 +16,7 @@ type NewPostParams struct {
 	CommentsEnabled bool
 }
 
-func (s *Service) PublishNewPost(ctx context.Context, params NewPostParams) (*domain.Post, error) {
+func (s *Service) PublishNewPost(ctx context.Context, params *NewPostParams) (*domain.Post, error) {
 	post, err := domain.NewPost(
 		uuid.New(),
 		domain.User{ID: params.AuthorID},
