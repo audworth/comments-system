@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate go tool mockgen -destination=mocks_test.go -package=comment . Repository,Notifier
 type Repository interface {
 	NewComment(ctx context.Context, comment *domain.Comment) (*domain.Comment, error)
 	CommentByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error)

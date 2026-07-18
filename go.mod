@@ -2,13 +2,17 @@ module github.com/audworth/comments-system
 
 go 1.26.5
 
-tool github.com/99designs/gqlgen
+tool (
+	github.com/99designs/gqlgen
+	go.uber.org/mock/mockgen
+)
 
 require (
 	github.com/99designs/gqlgen v0.17.94
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.11.1
 	github.com/vektah/gqlparser/v2 v2.5.36
+	go.uber.org/mock v0.6.0
 )
 
 require (

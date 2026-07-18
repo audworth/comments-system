@@ -6,6 +6,7 @@ import (
 	"github.com/audworth/comments-system/internal/domain"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestService_PostByID(t *testing.T) {
@@ -13,29 +14,25 @@ func TestService_PostByID(t *testing.T) {
 
 	id := uuid.New()
 	want := &domain.Post{ID: id}
-	repo, svc := newTestService()
-	repo.postByIDResult = want
+	repo, svc := newTestService(t)
+	repo.EXPECT().PostByID(gomock.Any(), id).Return(want, nil)
 
 	got, err := svc.PostByID(t.Context(), id)
 
 	require.NoError(t, err)
 	require.Same(t, want, got)
-	require.Equal(t, 1, repo.postByIDCalls)
-	require.Equal(t, id, repo.postByIDInput)
 }
 
 func TestService_PostByID_RepositoryFail(t *testing.T) {
 	t.Parallel()
 
 	id := uuid.New()
-	repo, svc := newTestService()
-	repo.postByIDErr = ErrNotFound
+	repo, svc := newTestService(t)
+	repo.EXPECT().PostByID(gomock.Any(), id).Return(nil, ErrNotFound)
 
 	got, err := svc.PostByID(t.Context(), id)
 
 	require.Nil(t, got)
 	require.ErrorContains(t, err, "get post "+id.String())
-	require.ErrorIs(t, err, repo.postByIDErr)
-	require.Equal(t, 1, repo.postByIDCalls)
-	require.Equal(t, id, repo.postByIDInput)
+	require.ErrorIs(t, err, ErrNotFound)
 }

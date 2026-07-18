@@ -51,7 +51,5 @@ models:
 
   Comment:
     fields:
-      author:
-        resolver: true
       replies:
         resolver: true

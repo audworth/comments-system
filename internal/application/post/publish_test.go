@@ -1,20 +1,29 @@
 package post
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/audworth/comments-system/internal/domain"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestService_PublishNewPost(t *testing.T) {
 	t.Parallel()
 
-	repo, svc := newTestService()
+	repo, svc := newTestService(t)
 	authorID := uuid.New()
 	before := time.Now().UTC()
+	var saved *domain.Post
+	repo.EXPECT().NewPost(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, post *domain.Post) (*domain.Post, error) {
+			saved = post
+			return post, nil
+		},
+	)
 
 	created, err := svc.PublishNewPost(t.Context(), NewPostParams{
 		AuthorID:        authorID,
@@ -25,21 +34,20 @@ func TestService_PublishNewPost(t *testing.T) {
 	after := time.Now().UTC()
 
 	require.NoError(t, err)
-	require.Same(t, repo.newPostInput, created)
-	require.Equal(t, 1, repo.newPostCalls)
-	require.NotEqual(t, uuid.Nil, repo.newPostInput.ID)
-	require.Equal(t, domain.User{ID: authorID}, repo.newPostInput.Author)
-	require.Equal(t, "title", repo.newPostInput.Title)
-	require.Equal(t, "body", repo.newPostInput.Body)
-	require.True(t, repo.newPostInput.CommentsEnabled)
-	require.WithinRange(t, repo.newPostInput.CreatedAt, before, after)
-	require.Equal(t, time.UTC, repo.newPostInput.CreatedAt.Location())
+	require.Same(t, saved, created)
+	require.NotEqual(t, uuid.Nil, saved.ID)
+	require.Equal(t, domain.User{ID: authorID}, saved.Author)
+	require.Equal(t, "title", saved.Title)
+	require.Equal(t, "body", saved.Body)
+	require.True(t, saved.CommentsEnabled)
+	require.WithinRange(t, saved.CreatedAt, before, after)
+	require.Equal(t, time.UTC, saved.CreatedAt.Location())
 }
 
 func TestService_PublishNewPost_RejectsInvalidPost(t *testing.T) {
 	t.Parallel()
 
-	repo, svc := newTestService()
+	_, svc := newTestService(t)
 	created, err := svc.PublishNewPost(t.Context(), NewPostParams{
 		AuthorID: uuid.New(),
 		Title:    "",
@@ -49,7 +57,6 @@ func TestService_PublishNewPost_RejectsInvalidPost(t *testing.T) {
 	require.Nil(t, created)
 	require.ErrorContains(t, err, "invalid post")
 	require.ErrorIs(t, err, domain.ErrEmptyPostTitle)
-	require.Zero(t, repo.newPostCalls)
 }
 
 func TestService_PublishNewPost_ReturnsRepositoryResult(t *testing.T) {
@@ -63,8 +70,14 @@ func TestService_PublishNewPost_ReturnsRepositoryResult(t *testing.T) {
 		CommentsEnabled: true,
 		CreatedAt:       time.Now().UTC().Add(time.Second),
 	}
-	repo, svc := newTestService()
-	repo.newPostResult = repositoryResult
+	repo, svc := newTestService(t)
+	var saved *domain.Post
+	repo.EXPECT().NewPost(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, post *domain.Post) (*domain.Post, error) {
+			saved = post
+			return repositoryResult, nil
+		},
+	)
 
 	created, err := svc.PublishNewPost(t.Context(), NewPostParams{
 		AuthorID: repositoryResult.Author.ID,
@@ -74,14 +87,14 @@ func TestService_PublishNewPost_ReturnsRepositoryResult(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Same(t, repositoryResult, created)
-	require.NotEqual(t, repo.newPostInput.ID, created.ID)
+	require.NotEqual(t, saved.ID, created.ID)
 }
 
 func TestService_PublishNewPost_RepositoryFails(t *testing.T) {
 	t.Parallel()
 
-	repo, svc := newTestService()
-	repo.newPostErr = ErrNotFound
+	repo, svc := newTestService(t)
+	repo.EXPECT().NewPost(gomock.Any(), gomock.Any()).Return(nil, ErrNotFound)
 
 	created, err := svc.PublishNewPost(t.Context(), NewPostParams{
 		AuthorID: uuid.New(),
@@ -91,6 +104,5 @@ func TestService_PublishNewPost_RepositoryFails(t *testing.T) {
 
 	require.Nil(t, created)
 	require.ErrorContains(t, err, "publish post")
-	require.ErrorIs(t, err, repo.newPostErr)
-	require.Equal(t, 1, repo.newPostCalls)
+	require.ErrorIs(t, err, ErrNotFound)
 }

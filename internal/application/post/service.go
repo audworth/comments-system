@@ -1,5 +1,7 @@
 package post
 
+//go:generate go tool mockgen -destination=mocks_test.go -package=post . Repository
+
 import (
 	"context"
 
@@ -10,7 +12,7 @@ import (
 type Repository interface {
 	NewPost(ctx context.Context, post *domain.Post) (*domain.Post, error)
 	PostByID(ctx context.Context, id uuid.UUID) (*domain.Post, error)
-	List(ctx context.Context, params ListParams) (*Page, error)
+	ListPosts(ctx context.Context, params ListParams) (*Page, error)
 	SetCommentsEnabled(ctx context.Context, postID uuid.UUID, author uuid.UUID, enabled bool) (*domain.Post, error)
 }
 

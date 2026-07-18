@@ -9,6 +9,7 @@ import (
 	"github.com/audworth/comments-system/internal/domain"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestService_List(t *testing.T) {
@@ -21,15 +22,13 @@ func TestService_List(t *testing.T) {
 		Next:        &Position{CreatedAt: time.Now().UTC(), ID: uuid.New()},
 		HasNextPage: true,
 	}
-	repo, svc := newTestService()
-	repo.listResult = want
+	repo, svc := newTestService(t)
+	repo.EXPECT().ListPosts(gomock.Any(), params).Return(want, nil)
 
-	got, err := svc.List(t.Context(), params)
+	got, err := svc.ListPosts(t.Context(), params)
 
 	require.NoError(t, err)
 	require.Same(t, want, got)
-	require.Equal(t, 1, repo.listCalls)
-	require.Equal(t, params, repo.listInput)
 }
 
 func TestService_List_AcceptsBoundaryLimits(t *testing.T) {
@@ -39,15 +38,15 @@ func TestService_List_AcceptsBoundaryLimits(t *testing.T) {
 		t.Run(strconv.Itoa(limit), func(t *testing.T) {
 			t.Parallel()
 
-			repo, svc := newTestService()
-			repo.listResult = &Page{}
+			repo, svc := newTestService(t)
+			want := &Page{}
+			params := ListParams{Limit: limit}
+			repo.EXPECT().ListPosts(gomock.Any(), params).Return(want, nil)
 
-			got, err := svc.List(t.Context(), ListParams{Limit: limit})
+			got, err := svc.ListPosts(t.Context(), params)
 
 			require.NoError(t, err)
-			require.Same(t, repo.listResult, got)
-			require.Equal(t, 1, repo.listCalls)
-			require.Equal(t, limit, repo.listInput.Limit)
+			require.Same(t, want, got)
 		})
 	}
 }
@@ -59,12 +58,11 @@ func TestService_List_RejectsInvalidLimit(t *testing.T) {
 		t.Run(strconv.Itoa(limit), func(t *testing.T) {
 			t.Parallel()
 
-			repo, svc := newTestService()
-			page, err := svc.List(t.Context(), ListParams{Limit: limit})
+			_, svc := newTestService(t)
+			page, err := svc.ListPosts(t.Context(), ListParams{Limit: limit})
 
 			require.Nil(t, page)
 			require.ErrorIs(t, err, application.ErrInvalidPageSize)
-			require.Zero(t, repo.listCalls)
 		})
 	}
 }
@@ -72,13 +70,13 @@ func TestService_List_RejectsInvalidLimit(t *testing.T) {
 func TestService_List_RepositoryFail(t *testing.T) {
 	t.Parallel()
 
-	repo, svc := newTestService()
-	repo.listErr = ErrNotFound
+	repo, svc := newTestService(t)
+	params := ListParams{Limit: 10}
+	repo.EXPECT().ListPosts(gomock.Any(), params).Return(nil, ErrNotFound)
 
-	page, err := svc.List(t.Context(), ListParams{Limit: 10})
+	page, err := svc.ListPosts(t.Context(), params)
 
 	require.Nil(t, page)
 	require.ErrorContains(t, err, "list posts")
-	require.ErrorIs(t, err, repo.listErr)
-	require.Equal(t, 1, repo.listCalls)
+	require.ErrorIs(t, err, ErrNotFound)
 }

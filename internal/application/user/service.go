@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate go tool mockgen -destination=mocks_test.go -package=user . Repository
 type Repository interface {
 	UserByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
 }

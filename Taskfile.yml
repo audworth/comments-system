@@ -21,8 +21,9 @@ tasks:
       - go mod tidy
 
   generate:
-    desc: сгеренерировать код из схем GraphQL
+    desc: сгенерировать моки и код из схем GraphQL
     cmds:
+      - go generate ./internal/application/...
       - go tool gqlgen generate
 
   fmt:
@@ -42,7 +43,6 @@ tasks:
       - >-
         go test
         -race
-        -coverprofile={{.COVERAGE_FILE}}
         {{.GO_PACKAGES}}
 
   coverage:

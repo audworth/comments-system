@@ -26,12 +26,12 @@ type Page struct {
 	HasNextPage bool
 }
 
-func (s *Service) List(ctx context.Context, params ListParams) (*Page, error) {
+func (s *Service) ListPosts(ctx context.Context, params ListParams) (*Page, error) {
 	if params.Limit < 1 || params.Limit > 100 {
 		return nil, application.ErrInvalidPageSize
 	}
 
-	postPage, err := s.repo.List(ctx, params)
+	postPage, err := s.repo.ListPosts(ctx, params)
 	if err != nil {
 		return nil, fmt.Errorf("list posts: %w", err)
 	}

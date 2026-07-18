@@ -1,27 +1,36 @@
 package user
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/audworth/comments-system/internal/domain"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
+
+var errRepo = errors.New("db unavailable")
+
+func newTestService(t *testing.T) (*MockRepository, *Service) {
+	t.Helper()
+
+	repo := NewMockRepository(gomock.NewController(t))
+	return repo, NewService(repo)
+}
 
 func TestService_UserByID(t *testing.T) {
 	t.Parallel()
 
 	id := uuid.New()
 	want := &domain.User{ID: id, Name: "Дмитрий"}
-	repo, svc := newTestService()
-	repo.userByIDResult = want
+	repo, svc := newTestService(t)
+	repo.EXPECT().UserByID(gomock.Any(), id).Return(want, nil)
 
 	got, err := svc.UserByID(t.Context(), id)
 
 	require.NoError(t, err)
 	require.Same(t, want, got)
-	require.Equal(t, 1, repo.userByIDCalls)
-	require.Equal(t, id, repo.userByIDInput)
 }
 
 func TestService_UserByID_RepositoryFails(t *testing.T) {
@@ -29,14 +38,12 @@ func TestService_UserByID_RepositoryFails(t *testing.T) {
 
 	repoErr := errRepo
 	id := uuid.New()
-	repo, svc := newTestService()
-	repo.userByIDErr = repoErr
+	repo, svc := newTestService(t)
+	repo.EXPECT().UserByID(gomock.Any(), id).Return(nil, repoErr)
 
 	got, err := svc.UserByID(t.Context(), id)
 
 	require.Nil(t, got)
 	require.ErrorContains(t, err, "get user "+id.String())
 	require.ErrorIs(t, err, repoErr)
-	require.Equal(t, 1, repo.userByIDCalls)
-	require.Equal(t, id, repo.userByIDInput)
 }
