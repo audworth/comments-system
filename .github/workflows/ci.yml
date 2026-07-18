@@ -20,19 +20,19 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Download dependencies
+      - name: download dependencies
         run: go mod download
 
-      - name: Verify dependencies
+      - name: verify dependencies
         run: go mod verify
 
-      - name: Check generated files and modules
+      - name: check generated files and modules
         run: |
           go generate ./...
           go mod tidy
           git diff --exit-code
 
-      - name: Check formatting
+      - name: check formatting
         run: |
           files="$(gofmt -l .)"
           if [ -n "$files" ]; then
@@ -41,14 +41,16 @@ jobs:
             exit 1
           fi
 
-      - name: Vet
+      - name: vet
         run: go vet ./...
 
-      - name: Lint
-        uses: golangci/golangci-lint-action@9.3.0
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.12
 
-      - name: Test
+      - name: test
         run: go test -race ./...
 
-      - name: Build
+      - name: build
         run: go build ./...
