@@ -11,6 +11,7 @@ const (
 	CodeForbidden       ErrorCode = "FORBIDDEN"
 
 	CodePostNotFound     ErrorCode = "POST_NOT_FOUND"
+	CodeUserNotFound     ErrorCode = "USER_NOT_FOUND"
 	CodeCommentNotFound  ErrorCode = "COMMENT_NOT_FOUND"
 	CodeParentNotFound   ErrorCode = "PARENT_COMMENT_NOT_FOUND"
 	CodeCommentsDisabled ErrorCode = "COMMENTS_DISABLED"
@@ -18,8 +19,9 @@ const (
 	CodePostTitleEmpty ErrorCode = "POST_TITLE_EMPTY"
 	CodePostBodyEmpty  ErrorCode = "POST_BODY_EMPTY"
 
-	CodeCommentEmpty   ErrorCode = "COMMENT_EMPTY"
-	CodeCommentTooLong ErrorCode = "COMMENT_TOO_LONG"
+	CodeCommentEmpty      ErrorCode = "COMMENT_EMPTY"
+	CodeCommentTooLong    ErrorCode = "COMMENT_TOO_LONG"
+	CodeCommentSelfParent ErrorCode = "COMMENT_SELF_PARENT"
 
 	CodeRequestCancelled ErrorCode = "REQUEST_CANCELLED"
 	CodeDeadlineExceeded ErrorCode = "DEADLINE_EXCEEDED"

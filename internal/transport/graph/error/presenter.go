@@ -9,6 +9,7 @@ import (
 	"github.com/audworth/comments-system/internal/application"
 	"github.com/audworth/comments-system/internal/application/comment"
 	"github.com/audworth/comments-system/internal/application/post"
+	"github.com/audworth/comments-system/internal/application/user"
 	"github.com/audworth/comments-system/internal/domain"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
@@ -64,12 +65,27 @@ func (p *Presenter) Present(ctx context.Context, err error) *gqlerror.Error {
 			"comment must not exceed 2000 characters",
 			"body",
 		)
+	case errors.Is(err, domain.ErrSelfParent):
+		return apiError(
+			presentedErr,
+			CodeCommentSelfParent,
+			"comment cannot be its own parent",
+			"parentId",
+		)
 	case errors.Is(err, post.ErrNotFound),
 		errors.Is(err, comment.ErrPostNotFound):
 		return apiError(
 			presentedErr,
 			CodePostNotFound,
 			"post not found",
+			"",
+		)
+
+	case errors.Is(err, user.ErrNotFound):
+		return apiError(
+			presentedErr,
+			CodeUserNotFound,
+			"user not found",
 			"",
 		)
 
