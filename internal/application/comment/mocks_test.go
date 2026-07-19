@@ -72,6 +72,21 @@ func (mr *MockRepositoryMockRecorder) ListChildren(ctx, params any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListChildren", reflect.TypeOf((*MockRepository)(nil).ListChildren), ctx, params)
 }
 
+// ListChildrenBatch mocks base method.
+func (m *MockRepository) ListChildrenBatch(ctx context.Context, params []ListParams) ([]*Page, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListChildrenBatch", ctx, params)
+	ret0, _ := ret[0].([]*Page)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListChildrenBatch indicates an expected call of ListChildrenBatch.
+func (mr *MockRepositoryMockRecorder) ListChildrenBatch(ctx, params any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListChildrenBatch", reflect.TypeOf((*MockRepository)(nil).ListChildrenBatch), ctx, params)
+}
+
 // NewComment mocks base method.
 func (m *MockRepository) NewComment(ctx context.Context, comment *domain.Comment) (*domain.Comment, error) {
 	m.ctrl.T.Helper()

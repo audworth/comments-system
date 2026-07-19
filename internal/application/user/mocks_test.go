@@ -56,3 +56,18 @@ func (mr *MockRepositoryMockRecorder) UserByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserByID", reflect.TypeOf((*MockRepository)(nil).UserByID), ctx, id)
 }
+
+// UsersByIDs mocks base method.
+func (m *MockRepository) UsersByIDs(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]*domain.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UsersByIDs", ctx, ids)
+	ret0, _ := ret[0].(map[uuid.UUID]*domain.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UsersByIDs indicates an expected call of UsersByIDs.
+func (mr *MockRepositoryMockRecorder) UsersByIDs(ctx, ids any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UsersByIDs", reflect.TypeOf((*MockRepository)(nil).UsersByIDs), ctx, ids)
+}

@@ -16,3 +16,12 @@ func (s *Service) UserByID(ctx context.Context, id uuid.UUID) (*domain.User, err
 
 	return user, nil
 }
+
+func (s *Service) UsersByIDs(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]*domain.User, error) {
+	users, err := s.repo.UsersByIDs(ctx, ids)
+	if err != nil {
+		return nil, fmt.Errorf("get users: %w", err)
+	}
+
+	return users, nil
+}
