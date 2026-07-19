@@ -3,45 +3,57 @@ package config
 import (
 	"fmt"
 	"os"
-	"strconv"
 )
 
 const LocalEnv = "local"
 
+type StorageType string
+
+const (
+	StoragePostgres StorageType = "postgres"
+	StorageMemory   StorageType = "memory"
+)
+
 type Config struct {
-	Addr                 string
-	LogLevel             string
-	Env                  string
-	QueryComplexityLimit int
+	Addr        string
+	LogLevel    string
+	Env         string
+	Storage     StorageType
+	DatabaseURL string
 }
 
 func FromEnv() (Config, error) {
-	config := Config{
-		Addr:                 ":8080",
-		LogLevel:             "info",
-		Env:                  LocalEnv,
-		QueryComplexityLimit: 10000,
+	cfg := Config{
+		Addr:        ":8080",
+		LogLevel:    "info",
+		Env:         LocalEnv,
+		Storage:     StoragePostgres,
+		DatabaseURL: os.Getenv("DATABASE_URL"),
 	}
 
 	if addr := os.Getenv("HTTP_ADDRESS"); addr != "" {
-		config.Addr = addr
+		cfg.Addr = addr
 	}
-	if logLVL := os.Getenv("LOG_LEVEL"); logLVL != "" {
-		config.LogLevel = logLVL
+	if level := os.Getenv("LOG_LEVEL"); level != "" {
+		cfg.LogLevel = level
 	}
 	if env := os.Getenv("ENVIRONMENT"); env != "" {
-		config.Env = env
+		cfg.Env = env
 	}
-	if queryLimit := os.Getenv("QUERY_COMPLEXITY_LIMIT:"); queryLimit != "" {
-		limit, err := strconv.Atoi(queryLimit)
-		if err != nil {
-			return Config{}, fmt.Errorf("parse QUERY_COMPLEXITY_LIMIT: %w", err)
-		}
-		if limit < 1 {
-			return Config{}, fmt.Errorf("QUERY_COMPLEXITY_LIMIT must be positive")
-		}
-		config.QueryComplexityLimit = limit
+	if storage := os.Getenv("STORAGE_TYPE"); storage != "" {
+		cfg.Storage = StorageType(storage)
 	}
 
-	return config, nil
+	switch cfg.Storage {
+	case StoragePostgres:
+		if cfg.DatabaseURL == "" {
+			return Config{}, fmt.Errorf("DATABASE_URL is required for %s storage", StoragePostgres)
+		}
+	case StorageMemory:
+		panic("TODO")
+	default:
+		return Config{}, fmt.Errorf("unsupported STORAGE_TYPE %q", cfg.Storage)
+	}
+
+	return cfg, nil
 }

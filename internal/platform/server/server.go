@@ -12,7 +12,9 @@ import (
 	"github.com/audworth/comments-system/internal/application/post"
 	"github.com/audworth/comments-system/internal/application/user"
 	"github.com/audworth/comments-system/internal/config"
+	"github.com/audworth/comments-system/internal/platform/db"
 	"github.com/audworth/comments-system/internal/platform/logger"
+	"github.com/audworth/comments-system/internal/storage/pg"
 	"github.com/audworth/comments-system/internal/transport/graph"
 	"github.com/audworth/comments-system/internal/transport/graph/resolver"
 )
@@ -26,7 +28,10 @@ const (
 )
 
 type Server struct {
-	cfg config.Config
+	cfg      config.Config
+	users    *user.Service
+	posts    *post.Service
+	comments *comment.Service
 }
 
 func New(cfg config.Config) *Server {
@@ -39,25 +44,24 @@ func (s *Server) Run(ctx context.Context) error {
 		return fmt.Errorf("create logger: %w", err)
 	}
 
-	// TODO: real deps
-	postsSvc := post.NewService(nil)
-	commsSvc := comment.NewService(nil, nil)
-	usersSvc := user.NewService(nil)
+	closeStorage, err := s.initServices(ctx)
+	if err != nil {
+		return err
+	}
+	defer closeStorage()
 
-	root := resolver.New(postsSvc, usersSvc, commsSvc)
-	handler := graph.NewHandler(
+	root := resolver.New(s.posts, s.users, s.comments)
+	graphHandler := graph.NewHandler(
 		root,
-		usersSvc,
-		commsSvc,
+		s.users,
+		s.comments,
 		lg,
-		graph.HandlerConfig{
-			Local:           s.cfg.Env == config.LocalEnv,
-			ComplexityLimit: s.cfg.QueryComplexityLimit,
-		},
+		graph.HandlerConfig{Local: s.cfg.Env == config.LocalEnv},
 	)
+
 	server := &http.Server{
 		Addr:              s.cfg.Addr,
-		Handler:           handler,
+		Handler:           graphHandler,
 		ReadHeaderTimeout: readHeaderTimeout,
 		ReadTimeout:       readTimeout,
 		WriteTimeout:      writeTimeout,
@@ -67,9 +71,7 @@ func (s *Server) Run(ctx context.Context) error {
 	lg.InfoContext(ctx, "HTTP server started", slog.String("address", server.Addr))
 	errCh := make(chan error, 1)
 	go func() {
-		if err := server.ListenAndServe(); err != nil {
-			errCh <- err
-		}
+		errCh <- server.ListenAndServe()
 	}()
 
 	select {
@@ -78,12 +80,11 @@ func (s *Server) Run(ctx context.Context) error {
 			return nil
 		}
 		return fmt.Errorf("serve HTTP: %w", err)
-
 	case <-ctx.Done():
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 		defer cancel()
 
-		lg.InfoContext(ctx, "shutting down HTTP server", slog.Duration("shutdown-timeout", shutdownTimeout))
+		lg.InfoContext(ctx, "shutting down HTTP server", slog.Duration("shutdown_timeout", shutdownTimeout))
 		if err := server.Shutdown(shutdownCtx); err != nil {
 			return fmt.Errorf("shutdown HTTP server: %w", err)
 		}
@@ -94,5 +95,32 @@ func (s *Server) Run(ctx context.Context) error {
 
 		lg.InfoContext(ctx, "graceful shutdown completed")
 		return nil
+	}
+}
+
+func (s *Server) initServices(ctx context.Context) (func(), error) {
+	switch s.cfg.Storage {
+	case config.StoragePostgres:
+		pool, err := db.NewPostgres(ctx, db.Config{URL: s.cfg.DatabaseURL})
+		if err != nil {
+			return nil, fmt.Errorf("connect to postgres: %w", err)
+		}
+
+		postsRepo := pg.NewPostRepository(pool)
+		commentsRepo := pg.NewCommentsRepository(pool)
+		usersRepo := pg.NewUserRepository(pool)
+
+		s.posts = post.NewService(postsRepo)
+		// TODO: add notifier
+		s.comments = comment.NewService(commentsRepo, nil)
+		s.users = user.NewService(usersRepo)
+
+		return pool.Close, nil
+
+	case config.StorageMemory:
+		panic("TODO")
+
+	default:
+		return nil, fmt.Errorf("unsupported storage type %q", s.cfg.Storage)
 	}
 }

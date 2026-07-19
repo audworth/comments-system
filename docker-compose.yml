@@ -26,6 +26,7 @@ services:
       HTTP_ADDRESS: ${HTTP_ADDRESS:-:8080}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       ENVIRONMENT: ${ENVIRONMENT:-local}
+      STORAGE_TYPE: ${STORAGE_TYPE:-postgres}
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
     depends_on:
       postgres:
