@@ -19,7 +19,7 @@ func TestService_Publish(t *testing.T) {
 	before := time.Now().UTC()
 
 	var saved *domain.Comment
-	repo.EXPECT().NewComment(gomock.Any(), gomock.Any()).DoAndReturn(
+	repo.EXPECT().Publish(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(_ context.Context, comment *domain.Comment) (*domain.Comment, error) {
 			saved = comment
 			return comment, nil
@@ -79,7 +79,7 @@ func TestService_Publish_ReturnsAndNotifiesRepositoryResult(t *testing.T) {
 	}
 	repo, notifier, svc := newTestService(t)
 	var input *domain.Comment
-	repo.EXPECT().NewComment(gomock.Any(), gomock.Any()).DoAndReturn(
+	repo.EXPECT().Publish(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(_ context.Context, comment *domain.Comment) (*domain.Comment, error) {
 			input = comment
 			return repoResult, nil
@@ -102,7 +102,7 @@ func TestService_Publish_RepositoryFails(t *testing.T) {
 	t.Parallel()
 
 	repo, _, service := newTestService(t)
-	repo.EXPECT().NewComment(gomock.Any(), gomock.Any()).Return(nil, errRepo)
+	repo.EXPECT().Publish(gomock.Any(), gomock.Any()).Return(nil, errRepo)
 
 	created, err := service.Publish(t.Context(), PublishParams{
 		PostID:   uuid.New(),
@@ -120,7 +120,7 @@ func TestService_Publish_IgnoresNotifierFail(t *testing.T) {
 
 	repo, notifier, svc := newTestService(t)
 	var saved *domain.Comment
-	repo.EXPECT().NewComment(gomock.Any(), gomock.Any()).DoAndReturn(
+	repo.EXPECT().Publish(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(_ context.Context, comment *domain.Comment) (*domain.Comment, error) {
 			saved = comment
 			return comment, nil
@@ -143,7 +143,7 @@ func TestService_Publish_IsSavedBeforeNotifying(t *testing.T) {
 
 	repo, notifier, service := newTestService(t)
 	gomock.InOrder(
-		repo.EXPECT().NewComment(gomock.Any(), gomock.Any()).DoAndReturn(
+		repo.EXPECT().Publish(gomock.Any(), gomock.Any()).DoAndReturn(
 			func(_ context.Context, comment *domain.Comment) (*domain.Comment, error) {
 				return comment, nil
 			},

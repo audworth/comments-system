@@ -19,7 +19,7 @@ func TestService_ListBatch(t *testing.T) {
 	}
 	want := []*Page{{}, {HasNextPage: true}}
 	repo, _, svc := newTestService(t)
-	repo.EXPECT().ListChildrenBatch(gomock.Any(), params).Return(want, nil)
+	repo.EXPECT().ListBatch(gomock.Any(), params).Return(want, nil)
 
 	got, err := svc.ListBatch(t.Context(), params)
 
@@ -58,7 +58,7 @@ func TestService_ListBatch_RepositoryFails(t *testing.T) {
 	params := []ListParams{{PostID: uuid.New(), Limit: 20}}
 	wantErr := errors.New("storage unavailable")
 	repo, _, svc := newTestService(t)
-	repo.EXPECT().ListChildrenBatch(gomock.Any(), params).Return(nil, wantErr)
+	repo.EXPECT().ListBatch(gomock.Any(), params).Return(nil, wantErr)
 
 	pages, err := svc.ListBatch(t.Context(), params)
 
@@ -75,7 +75,7 @@ func TestService_ListBatch_RejectsWrongResultCount(t *testing.T) {
 		{PostID: uuid.New(), Limit: 20},
 	}
 	repo, _, svc := newTestService(t)
-	repo.EXPECT().ListChildrenBatch(gomock.Any(), params).Return([]*Page{{}}, nil)
+	repo.EXPECT().ListBatch(gomock.Any(), params).Return([]*Page{{}}, nil)
 
 	pages, err := svc.ListBatch(t.Context(), params)
 

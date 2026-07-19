@@ -42,62 +42,62 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
-// ListPosts mocks base method.
-func (m *MockRepository) ListPosts(ctx context.Context, params ListParams) (*Page, error) {
+// GetByID mocks base method.
+func (m *MockRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Post, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPosts", ctx, params)
+	ret := m.ctrl.Call(m, "GetByID", ctx, id)
+	ret0, _ := ret[0].(*domain.Post)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByID indicates an expected call of GetByID.
+func (mr *MockRepositoryMockRecorder) GetByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), ctx, id)
+}
+
+// List mocks base method.
+func (m *MockRepository) List(ctx context.Context, params ListParams) (*Page, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", ctx, params)
 	ret0, _ := ret[0].(*Page)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListPosts indicates an expected call of ListPosts.
-func (mr *MockRepositoryMockRecorder) ListPosts(ctx, params any) *gomock.Call {
+// List indicates an expected call of List.
+func (mr *MockRepositoryMockRecorder) List(ctx, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPosts", reflect.TypeOf((*MockRepository)(nil).ListPosts), ctx, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockRepository)(nil).List), ctx, params)
 }
 
-// NewPost mocks base method.
-func (m *MockRepository) NewPost(ctx context.Context, post *domain.Post) (*domain.Post, error) {
+// Publish mocks base method.
+func (m *MockRepository) Publish(ctx context.Context, post *domain.Post) (*domain.Post, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewPost", ctx, post)
+	ret := m.ctrl.Call(m, "Publish", ctx, post)
 	ret0, _ := ret[0].(*domain.Post)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// NewPost indicates an expected call of NewPost.
-func (mr *MockRepositoryMockRecorder) NewPost(ctx, post any) *gomock.Call {
+// Publish indicates an expected call of Publish.
+func (mr *MockRepositoryMockRecorder) Publish(ctx, post any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewPost", reflect.TypeOf((*MockRepository)(nil).NewPost), ctx, post)
-}
-
-// PostByID mocks base method.
-func (m *MockRepository) PostByID(ctx context.Context, id uuid.UUID) (*domain.Post, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PostByID", ctx, id)
-	ret0, _ := ret[0].(*domain.Post)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// PostByID indicates an expected call of PostByID.
-func (mr *MockRepositoryMockRecorder) PostByID(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostByID", reflect.TypeOf((*MockRepository)(nil).PostByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockRepository)(nil).Publish), ctx, post)
 }
 
 // SetCommentsEnabled mocks base method.
-func (m *MockRepository) SetCommentsEnabled(ctx context.Context, postID, author uuid.UUID, enabled bool) (*domain.Post, error) {
+func (m *MockRepository) SetCommentsEnabled(ctx context.Context, postID, authorID uuid.UUID, enabled bool) (*domain.Post, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetCommentsEnabled", ctx, postID, author, enabled)
+	ret := m.ctrl.Call(m, "SetCommentsEnabled", ctx, postID, authorID, enabled)
 	ret0, _ := ret[0].(*domain.Post)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SetCommentsEnabled indicates an expected call of SetCommentsEnabled.
-func (mr *MockRepositoryMockRecorder) SetCommentsEnabled(ctx, postID, author, enabled any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) SetCommentsEnabled(ctx, postID, authorID, enabled any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCommentsEnabled", reflect.TypeOf((*MockRepository)(nil).SetCommentsEnabled), ctx, postID, author, enabled)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCommentsEnabled", reflect.TypeOf((*MockRepository)(nil).SetCommentsEnabled), ctx, postID, authorID, enabled)
 }

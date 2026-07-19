@@ -25,7 +25,7 @@ func TestService_GetByID(t *testing.T) {
 	id := uuid.New()
 	want := &domain.User{ID: id, Name: "Дмитрий"}
 	repo, svc := newTestService(t)
-	repo.EXPECT().UserByID(gomock.Any(), id).Return(want, nil)
+	repo.EXPECT().GetByID(gomock.Any(), id).Return(want, nil)
 
 	got, err := svc.GetByID(t.Context(), id)
 
@@ -39,7 +39,7 @@ func TestService_GetByID_RepositoryFails(t *testing.T) {
 	repoErr := errRepo
 	id := uuid.New()
 	repo, svc := newTestService(t)
-	repo.EXPECT().UserByID(gomock.Any(), id).Return(nil, repoErr)
+	repo.EXPECT().GetByID(gomock.Any(), id).Return(nil, repoErr)
 
 	got, err := svc.GetByID(t.Context(), id)
 

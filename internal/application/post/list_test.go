@@ -23,7 +23,7 @@ func TestService_List(t *testing.T) {
 		HasNextPage: true,
 	}
 	repo, svc := newTestService(t)
-	repo.EXPECT().ListPosts(gomock.Any(), params).Return(want, nil)
+	repo.EXPECT().List(gomock.Any(), params).Return(want, nil)
 
 	got, err := svc.List(t.Context(), params)
 
@@ -41,7 +41,7 @@ func TestService_List_AcceptsBoundaryLimits(t *testing.T) {
 			repo, svc := newTestService(t)
 			want := &Page{}
 			params := ListParams{Limit: limit}
-			repo.EXPECT().ListPosts(gomock.Any(), params).Return(want, nil)
+			repo.EXPECT().List(gomock.Any(), params).Return(want, nil)
 
 			got, err := svc.List(t.Context(), params)
 
@@ -72,7 +72,7 @@ func TestService_List_RepositoryFail(t *testing.T) {
 
 	repo, svc := newTestService(t)
 	params := ListParams{Limit: 10}
-	repo.EXPECT().ListPosts(gomock.Any(), params).Return(nil, ErrNotFound)
+	repo.EXPECT().List(gomock.Any(), params).Return(nil, ErrNotFound)
 
 	page, err := svc.List(t.Context(), params)
 

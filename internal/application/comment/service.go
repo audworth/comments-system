@@ -37,10 +37,10 @@ type Page struct {
 
 //go:generate go tool mockgen -destination=mocks_test.go -package=comment . Repository,Notifier
 type Repository interface {
-	NewComment(ctx context.Context, comment *domain.Comment) (*domain.Comment, error)
-	CommentByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error)
-	ListChildren(ctx context.Context, params ListParams) (*Page, error)
-	ListChildrenBatch(ctx context.Context, params []ListParams) ([]*Page, error)
+	Publish(ctx context.Context, comment *domain.Comment) (*domain.Comment, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error)
+	List(ctx context.Context, params ListParams) (*Page, error)
+	ListBatch(ctx context.Context, params []ListParams) ([]*Page, error)
 }
 
 type Notifier interface {
@@ -72,7 +72,7 @@ func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Co
 		return nil, fmt.Errorf("invalid comment: %w", err)
 	}
 
-	created, err := s.repo.NewComment(ctx, comm)
+	created, err := s.repo.Publish(ctx, comm)
 	if err != nil {
 		return nil, fmt.Errorf("publish comment: %w", err)
 	}
@@ -84,7 +84,7 @@ func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Co
 }
 
 func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error) {
-	comm, err := s.repo.CommentByID(ctx, id)
+	comm, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("get comment %s: %w", id, err)
 	}
@@ -97,7 +97,7 @@ func (s *Service) List(ctx context.Context, params ListParams) (*Page, error) {
 		return nil, application.ErrInvalidPageSize
 	}
 
-	page, err := s.repo.ListChildren(ctx, params)
+	page, err := s.repo.List(ctx, params)
 	if err != nil {
 		return nil, fmt.Errorf("list comments for post %s: %w", params.PostID, err)
 	}
@@ -120,7 +120,7 @@ func (s *Service) ListBatch(ctx context.Context, params []ListParams) ([]*Page, 
 		}
 	}
 
-	pages, err := s.repo.ListChildrenBatch(ctx, params)
+	pages, err := s.repo.ListBatch(ctx, params)
 	if err != nil {
 		return nil, fmt.Errorf("list comment pages: %w", err)
 	}

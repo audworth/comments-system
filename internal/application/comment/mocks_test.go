@@ -42,64 +42,64 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
-// CommentByID mocks base method.
-func (m *MockRepository) CommentByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error) {
+// GetByID mocks base method.
+func (m *MockRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CommentByID", ctx, id)
+	ret := m.ctrl.Call(m, "GetByID", ctx, id)
 	ret0, _ := ret[0].(*domain.Comment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CommentByID indicates an expected call of CommentByID.
-func (mr *MockRepositoryMockRecorder) CommentByID(ctx, id any) *gomock.Call {
+// GetByID indicates an expected call of GetByID.
+func (mr *MockRepositoryMockRecorder) GetByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CommentByID", reflect.TypeOf((*MockRepository)(nil).CommentByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), ctx, id)
 }
 
-// ListChildren mocks base method.
-func (m *MockRepository) ListChildren(ctx context.Context, params ListParams) (*Page, error) {
+// List mocks base method.
+func (m *MockRepository) List(ctx context.Context, params ListParams) (*Page, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListChildren", ctx, params)
+	ret := m.ctrl.Call(m, "List", ctx, params)
 	ret0, _ := ret[0].(*Page)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListChildren indicates an expected call of ListChildren.
-func (mr *MockRepositoryMockRecorder) ListChildren(ctx, params any) *gomock.Call {
+// List indicates an expected call of List.
+func (mr *MockRepositoryMockRecorder) List(ctx, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListChildren", reflect.TypeOf((*MockRepository)(nil).ListChildren), ctx, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockRepository)(nil).List), ctx, params)
 }
 
-// ListChildrenBatch mocks base method.
-func (m *MockRepository) ListChildrenBatch(ctx context.Context, params []ListParams) ([]*Page, error) {
+// ListBatch mocks base method.
+func (m *MockRepository) ListBatch(ctx context.Context, params []ListParams) ([]*Page, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListChildrenBatch", ctx, params)
+	ret := m.ctrl.Call(m, "ListBatch", ctx, params)
 	ret0, _ := ret[0].([]*Page)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListChildrenBatch indicates an expected call of ListChildrenBatch.
-func (mr *MockRepositoryMockRecorder) ListChildrenBatch(ctx, params any) *gomock.Call {
+// ListBatch indicates an expected call of ListBatch.
+func (mr *MockRepositoryMockRecorder) ListBatch(ctx, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListChildrenBatch", reflect.TypeOf((*MockRepository)(nil).ListChildrenBatch), ctx, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBatch", reflect.TypeOf((*MockRepository)(nil).ListBatch), ctx, params)
 }
 
-// NewComment mocks base method.
-func (m *MockRepository) NewComment(ctx context.Context, comment *domain.Comment) (*domain.Comment, error) {
+// Publish mocks base method.
+func (m *MockRepository) Publish(ctx context.Context, comment *domain.Comment) (*domain.Comment, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewComment", ctx, comment)
+	ret := m.ctrl.Call(m, "Publish", ctx, comment)
 	ret0, _ := ret[0].(*domain.Comment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// NewComment indicates an expected call of NewComment.
-func (mr *MockRepositoryMockRecorder) NewComment(ctx, comment any) *gomock.Call {
+// Publish indicates an expected call of Publish.
+func (mr *MockRepositoryMockRecorder) Publish(ctx, comment any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewComment", reflect.TypeOf((*MockRepository)(nil).NewComment), ctx, comment)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockRepository)(nil).Publish), ctx, comment)
 }
 
 // MockNotifier is a mock of Notifier interface.

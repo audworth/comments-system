@@ -18,7 +18,7 @@ func TestService_Publish(t *testing.T) {
 	authorID := uuid.New()
 	before := time.Now().UTC()
 	var saved *domain.Post
-	repo.EXPECT().NewPost(gomock.Any(), gomock.Any()).DoAndReturn(
+	repo.EXPECT().Publish(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(_ context.Context, post *domain.Post) (*domain.Post, error) {
 			saved = post
 			return post, nil
@@ -72,7 +72,7 @@ func TestService_Publish_ReturnsRepositoryResult(t *testing.T) {
 	}
 	repo, svc := newTestService(t)
 	var saved *domain.Post
-	repo.EXPECT().NewPost(gomock.Any(), gomock.Any()).DoAndReturn(
+	repo.EXPECT().Publish(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(_ context.Context, post *domain.Post) (*domain.Post, error) {
 			saved = post
 			return repositoryResult, nil
@@ -94,7 +94,7 @@ func TestService_Publish_RepositoryFails(t *testing.T) {
 	t.Parallel()
 
 	repo, svc := newTestService(t)
-	repo.EXPECT().NewPost(gomock.Any(), gomock.Any()).Return(nil, ErrNotFound)
+	repo.EXPECT().Publish(gomock.Any(), gomock.Any()).Return(nil, ErrNotFound)
 
 	created, err := svc.Publish(t.Context(), PublishParams{
 		AuthorID: uuid.New(),

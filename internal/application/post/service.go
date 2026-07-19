@@ -36,10 +36,10 @@ type Page struct {
 }
 
 type Repository interface {
-	NewPost(ctx context.Context, post *domain.Post) (*domain.Post, error)
-	PostByID(ctx context.Context, id uuid.UUID) (*domain.Post, error)
-	ListPosts(ctx context.Context, params ListParams) (*Page, error)
-	SetCommentsEnabled(ctx context.Context, postID uuid.UUID, author uuid.UUID, enabled bool) (*domain.Post, error)
+	Publish(ctx context.Context, post *domain.Post) (*domain.Post, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Post, error)
+	List(ctx context.Context, params ListParams) (*Page, error)
+	SetCommentsEnabled(ctx context.Context, postID uuid.UUID, authorID uuid.UUID, enabled bool) (*domain.Post, error)
 }
 
 type Service struct {
@@ -65,7 +65,7 @@ func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Po
 		return nil, fmt.Errorf("invalid post: %w", err)
 	}
 
-	created, err := s.repo.NewPost(ctx, p)
+	created, err := s.repo.Publish(ctx, p)
 	if err != nil {
 		return nil, fmt.Errorf("publish post: %w", err)
 	}
@@ -74,7 +74,7 @@ func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Po
 }
 
 func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (*domain.Post, error) {
-	p, err := s.repo.PostByID(ctx, id)
+	p, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("get post %s: %w", id, err)
 	}
@@ -87,7 +87,7 @@ func (s *Service) List(ctx context.Context, params ListParams) (*Page, error) {
 		return nil, application.ErrInvalidPageSize
 	}
 
-	page, err := s.repo.ListPosts(ctx, params)
+	page, err := s.repo.List(ctx, params)
 	if err != nil {
 		return nil, fmt.Errorf("list posts: %w", err)
 	}

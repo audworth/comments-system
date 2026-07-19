@@ -42,32 +42,32 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
-// UserByID mocks base method.
-func (m *MockRepository) UserByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
+// GetByID mocks base method.
+func (m *MockRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UserByID", ctx, id)
+	ret := m.ctrl.Call(m, "GetByID", ctx, id)
 	ret0, _ := ret[0].(*domain.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// UserByID indicates an expected call of UserByID.
-func (mr *MockRepositoryMockRecorder) UserByID(ctx, id any) *gomock.Call {
+// GetByID indicates an expected call of GetByID.
+func (mr *MockRepositoryMockRecorder) GetByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserByID", reflect.TypeOf((*MockRepository)(nil).UserByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), ctx, id)
 }
 
-// UsersByIDs mocks base method.
-func (m *MockRepository) UsersByIDs(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]*domain.User, error) {
+// GetByIDs mocks base method.
+func (m *MockRepository) GetByIDs(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]*domain.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UsersByIDs", ctx, ids)
+	ret := m.ctrl.Call(m, "GetByIDs", ctx, ids)
 	ret0, _ := ret[0].(map[uuid.UUID]*domain.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// UsersByIDs indicates an expected call of UsersByIDs.
-func (mr *MockRepositoryMockRecorder) UsersByIDs(ctx, ids any) *gomock.Call {
+// GetByIDs indicates an expected call of GetByIDs.
+func (mr *MockRepositoryMockRecorder) GetByIDs(ctx, ids any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UsersByIDs", reflect.TypeOf((*MockRepository)(nil).UsersByIDs), ctx, ids)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIDs", reflect.TypeOf((*MockRepository)(nil).GetByIDs), ctx, ids)
 }
