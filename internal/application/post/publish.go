@@ -17,9 +17,9 @@ type NewPostParams struct {
 }
 
 func (s *Service) PublishNewPost(ctx context.Context, params *NewPostParams) (*domain.Post, error) {
-	post, err := domain.NewPost(
+	p, err := domain.NewPost(
 		uuid.New(),
-		domain.User{ID: params.AuthorID},
+		params.AuthorID,
 		params.Title,
 		params.Body,
 		params.CommentsEnabled,
@@ -29,7 +29,7 @@ func (s *Service) PublishNewPost(ctx context.Context, params *NewPostParams) (*d
 		return nil, fmt.Errorf("invalid post: %w", err)
 	}
 
-	created, err := s.repo.NewPost(ctx, post)
+	created, err := s.repo.NewPost(ctx, p)
 	if err != nil {
 		return nil, fmt.Errorf("publish post: %w", err)
 	}

@@ -36,7 +36,7 @@ func TestService_PublishNewPost(t *testing.T) {
 	require.NoError(t, err)
 	require.Same(t, saved, created)
 	require.NotEqual(t, uuid.Nil, saved.ID)
-	require.Equal(t, domain.User{ID: authorID}, saved.Author)
+	require.Equal(t, authorID, saved.AuthorID)
 	require.Equal(t, "title", saved.Title)
 	require.Equal(t, "body", saved.Body)
 	require.True(t, saved.CommentsEnabled)
@@ -64,7 +64,7 @@ func TestService_PublishNewPost_ReturnsRepositoryResult(t *testing.T) {
 
 	repositoryResult := &domain.Post{
 		ID:              uuid.New(),
-		Author:          domain.User{ID: uuid.New()},
+		AuthorID:        uuid.New(),
 		Title:           "заголовок",
 		Body:            "тело",
 		CommentsEnabled: true,
@@ -80,7 +80,7 @@ func TestService_PublishNewPost_ReturnsRepositoryResult(t *testing.T) {
 	)
 
 	created, err := svc.PublishNewPost(t.Context(), &NewPostParams{
-		AuthorID: repositoryResult.Author.ID,
+		AuthorID: repositoryResult.AuthorID,
 		Title:    "заголовок1",
 		Body:     "тело1",
 	})

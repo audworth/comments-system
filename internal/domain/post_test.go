@@ -12,15 +12,14 @@ import (
 func TestNewPost(t *testing.T) {
 	t.Parallel()
 
-	id := uuid.New()
-	author := User{ID: uuid.New(), Name: "автор"}
+	id, authorID := uuid.New(), uuid.New()
 	createdAt := time.Date(2026, time.July, 18, 12, 0, 0, 0, time.UTC)
 
-	p, err := NewPost(id, author, "  заголовок\n", "\tтело\r\n", true, createdAt)
+	p, err := NewPost(id, authorID, "  заголовок\n", "\tтело\r\n", true, createdAt)
 
 	require.NoError(t, err)
 	require.Equal(t, id, p.ID)
-	require.Equal(t, author, p.Author)
+	require.Equal(t, authorID, p.AuthorID)
 	require.Equal(t, "заголовок", p.Title)
 	require.Equal(t, "тело", p.Body)
 	require.True(t, p.CommentsEnabled)
@@ -48,7 +47,7 @@ func TestNewPost_RejectsEmptyContent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := NewPost(uuid.New(), User{ID: uuid.New()}, tt.title, tt.body, false, time.Now())
+			_, err := NewPost(uuid.New(), uuid.New(), tt.title, tt.body, false, time.Now())
 
 			require.ErrorIs(t, err, tt.wantErr)
 		})
@@ -61,7 +60,7 @@ func TestNewPost_AcceptsLongUnicodeContent(t *testing.T) {
 	title := strings.Repeat("я", 10_000)
 	body := strings.Repeat("💨", 10_000)
 
-	post, err := NewPost(uuid.New(), User{ID: uuid.New()}, title, body, false, time.Now())
+	post, err := NewPost(uuid.New(), uuid.New(), title, body, false, time.Now())
 
 	require.NoError(t, err)
 	require.Equal(t, title, post.Title)
@@ -78,7 +77,7 @@ func TestPost_SetCommentEnabled(t *testing.T) {
 
 			authorID := uuid.New()
 			p := Post{
-				Author:          User{ID: authorID},
+				AuthorID:        authorID,
 				CommentsEnabled: !enabled,
 			}
 
@@ -94,7 +93,7 @@ func TestPost_SetCommentEnabled_RejectsNonAuthor(t *testing.T) {
 	t.Parallel()
 
 	p := Post{
-		Author:          User{ID: uuid.New()},
+		AuthorID:        uuid.New(),
 		CommentsEnabled: true,
 	}
 

@@ -13,7 +13,7 @@ func TestService_SetCommentsToEnabled(t *testing.T) {
 	t.Parallel()
 
 	postID, authorID := uuid.New(), uuid.New()
-	want := &domain.Post{ID: postID, Author: domain.User{ID: authorID}, CommentsEnabled: true}
+	want := &domain.Post{ID: postID, AuthorID: authorID, CommentsEnabled: true}
 	repo, svc := newTestService(t)
 	repo.EXPECT().SetCommentsEnabled(gomock.Any(), postID, authorID, true).Return(want, nil)
 
