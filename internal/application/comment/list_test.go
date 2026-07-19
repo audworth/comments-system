@@ -16,7 +16,7 @@ func TestService_List(t *testing.T) {
 	t.Parallel()
 
 	postID, parentID := uuid.New(), uuid.New()
-	after := &CommentPosition{CreatedAt: time.Now().UTC(), ID: uuid.New()}
+	after := &Position{CreatedAt: time.Now().UTC(), ID: uuid.New()}
 	params := &ListParams{
 		PostID:   postID,
 		ParentID: &parentID,
@@ -25,7 +25,7 @@ func TestService_List(t *testing.T) {
 	}
 	want := &Page{
 		Comments: []domain.Comment{{ID: uuid.New(), PostID: postID, ParentID: &parentID}},
-		EndCursor: &CommentPosition{
+		EndCursor: &Position{
 			CreatedAt: time.Now().UTC(),
 			ID:        uuid.New(),
 		},

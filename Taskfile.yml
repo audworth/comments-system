@@ -24,6 +24,7 @@ tasks:
     desc: сгенерировать моки и код из схем GraphQL
     cmds:
       - go generate ./internal/application/...
+      - go generate ./internal/transport/graph/resolver
       - go tool gqlgen generate
 
   fmt:

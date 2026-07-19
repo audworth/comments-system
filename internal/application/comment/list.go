@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type CommentPosition struct {
+type Position struct {
 	CreatedAt time.Time
 	ID        uuid.UUID
 }
@@ -19,12 +19,12 @@ type ListParams struct {
 	PostID   uuid.UUID
 	ParentID *uuid.UUID
 	Limit    int
-	After    *CommentPosition
+	After    *Position
 }
 
 type Page struct {
 	Comments    []domain.Comment
-	EndCursor   *CommentPosition
+	EndCursor   *Position
 	HasNextPage bool
 }
 

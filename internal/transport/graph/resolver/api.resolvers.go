@@ -9,44 +9,179 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/audworth/comments-system/internal/application/comment"
+	"github.com/audworth/comments-system/internal/application/post"
+	grapherror "github.com/audworth/comments-system/internal/transport/graph/error"
 	"github.com/audworth/comments-system/internal/transport/graph/generated"
 	"github.com/audworth/comments-system/internal/transport/graph/graphscalar"
 	"github.com/audworth/comments-system/internal/transport/graph/model"
+	"github.com/google/uuid"
 )
 
 // CreatePost is the resolver for the createPost field.
 func (r *mutationResolver) CreatePost(ctx context.Context, input model.CreatePostInput) (*model.Post, error) {
-	panic(fmt.Errorf("not implemented: CreatePost - createPost"))
+	authorID, err := uuid.Parse(input.AuthorID)
+	if err != nil {
+		return nil, grapherror.InvalidID("authorId", err)
+	}
+
+	p, err := r.posts.PublishNewPost(ctx, &post.NewPostParams{
+		AuthorID:        authorID,
+		Title:           input.Title,
+		Body:            input.Body,
+		CommentsEnabled: input.CommentsEnabled,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return model.PostFromDomain(p), nil
 }
 
 // SetPostCommentsEnabled is the resolver for the setPostCommentsEnabled field.
 func (r *mutationResolver) SetPostCommentsEnabled(ctx context.Context, input model.SetPostCommentsEnabledInput) (*model.Post, error) {
-	panic(fmt.Errorf("not implemented: SetPostCommentsEnabled - setPostCommentsEnabled"))
+	postID, err := uuid.Parse(input.PostID)
+	if err != nil {
+		return nil, grapherror.InvalidID("postId", err)
+	}
+	authorID, err := uuid.Parse(input.AuthorID)
+	if err != nil {
+		return nil, grapherror.InvalidID("authorId", err)
+	}
+
+	p, err := r.posts.SetCommentsToEnabled(ctx, postID, authorID, input.Enabled)
+	if err != nil {
+		return nil, err
+	}
+	return model.PostFromDomain(p), nil
 }
 
 // CreateComment is the resolver for the createComment field.
 func (r *mutationResolver) CreateComment(ctx context.Context, input model.CreateCommentInput) (*model.Comment, error) {
-	panic(fmt.Errorf("not implemented: CreateComment - createComment"))
+	postID, err := uuid.Parse(input.PostID)
+	if err != nil {
+		return nil, grapherror.InvalidID("postId", err)
+	}
+	authorID, err := uuid.Parse(input.AuthorID)
+	if err != nil {
+		return nil, grapherror.InvalidID("authorId", err)
+	}
+
+	var parentID *uuid.UUID
+	if input.ParentID != nil {
+		parsed, err := uuid.Parse(*input.ParentID)
+		if err != nil {
+			return nil, grapherror.InvalidID("parentId", err)
+		}
+		parentID = &parsed
+	}
+
+	comm, err := r.comments.PublishNewComment(ctx, &comment.NewCommentParams{
+		PostID:   postID,
+		ParentID: parentID,
+		AuthorID: authorID,
+		Body:     input.Body,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return model.CommentFromDomain(comm), nil
 }
 
 // Posts is the resolver for the posts field.
 func (r *queryResolver) Posts(ctx context.Context, first int32, after *graphscalar.Cursor) (*model.PostConnection, error) {
-	panic(fmt.Errorf("not implemented: Posts - posts"))
+	var pos *post.Position
+	if after != nil {
+		decoded, err := graphscalar.DecodeCursor(*after)
+		if err != nil {
+			return nil, grapherror.InvalidCursor(err)
+		}
+		pos = &post.Position{
+			CreatedAt: decoded.CreatedAt,
+			ID:        decoded.ID,
+		}
+	}
+
+	posts, err := r.posts.ListPosts(ctx, &post.ListParams{
+		Limit: int(first),
+		After: pos,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return model.PostConnectionFromPage(posts)
 }
 
 // Post is the resolver for the post field.
 func (r *queryResolver) Post(ctx context.Context, id string) (*model.Post, error) {
-	panic(fmt.Errorf("not implemented: Post - post"))
+	postID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, grapherror.InvalidID("postId", err)
+	}
+
+	p, err := r.posts.PostByID(ctx, postID)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.PostFromDomain(p), nil
 }
 
 // Comment is the resolver for the comment field.
 func (r *queryResolver) Comment(ctx context.Context, id string) (*model.Comment, error) {
-	panic(fmt.Errorf("not implemented: Comment - comment"))
+	commID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, grapherror.InvalidID("commentId", err)
+	}
+
+	comm, err := r.comments.CommentByID(ctx, commID)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.CommentFromDomain(comm), nil
 }
 
 // Comments is the resolver for the comments field.
 func (r *queryResolver) Comments(ctx context.Context, postID string, parentID *string, first int32, after *graphscalar.Cursor) (*model.CommentConnection, error) {
-	panic(fmt.Errorf("not implemented: Comments - comments"))
+	parsedPostID, err := uuid.Parse(postID)
+	if err != nil {
+		return nil, grapherror.InvalidID("postId", err)
+	}
+
+	var parsedParentID *uuid.UUID
+	if parentID != nil {
+		parsed, err := uuid.Parse(*parentID)
+		if err != nil {
+			return nil, grapherror.InvalidID("parentId", err)
+		}
+		parsedParentID = &parsed
+	}
+
+	var pos *comment.Position
+	if after != nil {
+		decoded, err := graphscalar.DecodeCursor(*after)
+		if err != nil {
+			return nil, grapherror.InvalidCursor(err)
+		}
+		pos = &comment.Position{
+			CreatedAt: decoded.CreatedAt,
+			ID:        decoded.ID,
+		}
+	}
+
+	comms, err := r.comments.List(ctx, &comment.ListParams{
+		PostID:   parsedPostID,
+		ParentID: parsedParentID,
+		Limit:    int(first),
+		After:    pos,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return model.CommentConnectionFromPage(comms)
 }
 
 // CommentCreated is the resolver for the commentCreated field.

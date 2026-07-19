@@ -43,6 +43,7 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Comment struct {
 		Author    func(childComplexity int) int
+		AuthorID  func(childComplexity int) int
 		Body      func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
@@ -95,9 +96,8 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		DisplayName func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Username    func(childComplexity int) int
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
 	}
 }
 
@@ -154,6 +154,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Comment.Author(childComplexity), true
+	case "Comment.authorId":
+		if e.ComplexityRoot.Comment.AuthorID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Comment.AuthorID(childComplexity), true
 	case "Comment.body":
 		if e.ComplexityRoot.Comment.Body == nil {
 			break
@@ -381,24 +387,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Subscription.CommentCreated(childComplexity, args["postId"].(string)), true
 
-	case "User.displayName":
-		if e.ComplexityRoot.User.DisplayName == nil {
-			break
-		}
-
-		return e.ComplexityRoot.User.DisplayName(childComplexity), true
 	case "User.id":
 		if e.ComplexityRoot.User.ID == nil {
 			break
 		}
 
 		return e.ComplexityRoot.User.ID(childComplexity), true
-	case "User.username":
-		if e.ComplexityRoot.User.Username == nil {
+	case "User.name":
+		if e.ComplexityRoot.User.Name == nil {
 			break
 		}
 
-		return e.ComplexityRoot.User.Username(childComplexity), true
+		return e.ComplexityRoot.User.Name(childComplexity), true
 
 	}
 	return 0, false
@@ -533,11 +533,17 @@ type Subscription {
     id: ID!
     postId: ID!
     parentId: ID
+    authorId: ID!
     author: User!
     body: String!
     createdAt: Time!
 
     replies(first: Int! = 20, after: Cursor): CommentConnection!
+}
+
+type CommentConnection {
+    nodes: [Comment!]!
+    pageInfo: PageInfo!
 }
 
 input CreateCommentInput {
@@ -552,23 +558,12 @@ scalar Cursor
 
 type User {
     id: ID!
-    username: String!
-    displayName: String!
+    name: String!
 }
 
 type PageInfo {
     endCursor: Cursor
     hasNextPage: Boolean!
-}
-
-type PostConnection {
-    nodes: [Post!]!
-    pageInfo: PageInfo!
-}
-
-type CommentConnection {
-    nodes: [Comment!]!
-    pageInfo: PageInfo!
 }
 `, BuiltIn: false},
 	{Name: "../schema/post.graphqls", Input: `type Post {
@@ -583,10 +578,16 @@ type CommentConnection {
     comments(first: Int! = 20, after: Cursor): CommentConnection!
 }
 
+type PostConnection {
+    nodes: [Post!]!
+    pageInfo: PageInfo!
+}
+
 input CreatePostInput {
     authorId: ID!
     title: String!
     body: String!
+    commentsEnabled: Boolean!
 }
 
 input SetPostCommentsEnabledInput {
@@ -610,6 +611,8 @@ func (ec *executionContext) childFields_Comment(ctx context.Context, field graph
 		return ec.fieldContext_Comment_postId(ctx, field)
 	case "parentId":
 		return ec.fieldContext_Comment_parentId(ctx, field)
+	case "authorId":
+		return ec.fieldContext_Comment_authorId(ctx, field)
 	case "author":
 		return ec.fieldContext_Comment_author(ctx, field)
 	case "body":
@@ -678,10 +681,8 @@ func (ec *executionContext) childFields_User(ctx context.Context, field graphql.
 	switch field.Name {
 	case "id":
 		return ec.fieldContext_User_id(ctx, field)
-	case "username":
-		return ec.fieldContext_User_username(ctx, field)
-	case "displayName":
-		return ec.fieldContext_User_displayName(ctx, field)
+	case "name":
+		return ec.fieldContext_User_name(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 }
@@ -1130,6 +1131,29 @@ func (ec *executionContext) _Comment_parentId(ctx context.Context, field graphql
 	)
 }
 func (ec *executionContext) fieldContext_Comment_parentId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Comment", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _Comment_authorId(ctx context.Context, field graphql.CollectedField, obj *model.Comment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Comment_authorId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.AuthorID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Comment_authorId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("Comment", field, false, false, errors.New("field of type ID does not have child fields"))
 }
 
@@ -2094,16 +2118,16 @@ func (ec *executionContext) fieldContext_User_id(_ context.Context, field graphq
 	return graphql.NewScalarFieldContext("User", field, false, false, errors.New("field of type ID does not have child fields"))
 }
 
-func (ec *executionContext) _User_username(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_name(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
 		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return ec.fieldContext_User_username(ctx, field)
+			return ec.fieldContext_User_name(ctx, field)
 		},
 		func(ctx context.Context) (any, error) {
-			return obj.Username, nil
+			return obj.Name, nil
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
@@ -2113,30 +2137,7 @@ func (ec *executionContext) _User_username(ctx context.Context, field graphql.Co
 		true,
 	)
 }
-func (ec *executionContext) fieldContext_User_username(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	return graphql.NewScalarFieldContext("User", field, false, false, errors.New("field of type String does not have child fields"))
-}
-
-func (ec *executionContext) _User_displayName(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return ec.fieldContext_User_displayName(ctx, field)
-		},
-		func(ctx context.Context) (any, error) {
-			return obj.DisplayName, nil
-		},
-		nil,
-		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
-			return ec.marshalNString2string(ctx, selections, v)
-		},
-		true,
-		true,
-	)
-}
-func (ec *executionContext) fieldContext_User_displayName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_User_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("User", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
@@ -3261,7 +3262,7 @@ func (ec *executionContext) unmarshalInputCreatePostInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"authorId", "title", "body"}
+	fieldsInOrder := [...]string{"authorId", "title", "body", "commentsEnabled"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3289,6 +3290,13 @@ func (ec *executionContext) unmarshalInputCreatePostInput(ctx context.Context, o
 				return it, err
 			}
 			it.Body = data
+		case "commentsEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("commentsEnabled"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CommentsEnabled = data
 		}
 	}
 	return it, nil
@@ -3371,6 +3379,11 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 		case "parentId":
 			out.Values[i] = ec._Comment_parentId(ctx, field, obj)
 			if out.Values[i] == graphql.RequiredNull {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "authorId":
+			out.Values[i] = ec._Comment_authorId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "author":
@@ -3990,13 +4003,8 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "username":
-			out.Values[i] = ec._User_username(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "displayName":
-			out.Values[i] = ec._User_displayName(ctx, field, obj)
+		case "name":
+			out.Values[i] = ec._User_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

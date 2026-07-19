@@ -19,6 +19,7 @@ input CreatePostInput {
     authorId: ID!
     title: String!
     body: String!
+    commentsEnabled: Boolean!
 }
 
 input SetPostCommentsEnabledInput {
