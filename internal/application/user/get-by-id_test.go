@@ -19,7 +19,7 @@ func newTestService(t *testing.T) (*MockRepository, *Service) {
 	return repo, NewService(repo)
 }
 
-func TestService_UserByID(t *testing.T) {
+func TestService_GetByID(t *testing.T) {
 	t.Parallel()
 
 	id := uuid.New()
@@ -27,13 +27,13 @@ func TestService_UserByID(t *testing.T) {
 	repo, svc := newTestService(t)
 	repo.EXPECT().UserByID(gomock.Any(), id).Return(want, nil)
 
-	got, err := svc.UserByID(t.Context(), id)
+	got, err := svc.GetByID(t.Context(), id)
 
 	require.NoError(t, err)
 	require.Same(t, want, got)
 }
 
-func TestService_UserByID_RepositoryFails(t *testing.T) {
+func TestService_GetByID_RepositoryFails(t *testing.T) {
 	t.Parallel()
 
 	repoErr := errRepo
@@ -41,7 +41,7 @@ func TestService_UserByID_RepositoryFails(t *testing.T) {
 	repo, svc := newTestService(t)
 	repo.EXPECT().UserByID(gomock.Any(), id).Return(nil, repoErr)
 
-	got, err := svc.UserByID(t.Context(), id)
+	got, err := svc.GetByID(t.Context(), id)
 
 	require.Nil(t, got)
 	require.ErrorContains(t, err, "get user "+id.String())

@@ -7,7 +7,7 @@ import (
 	"github.com/audworth/comments-system/internal/application"
 )
 
-func (s *Service) ListBatchComments(
+func (s *Service) ListBatch(
 	ctx context.Context,
 	params []ListParams,
 ) ([]*Page, error) {

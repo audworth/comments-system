@@ -25,7 +25,7 @@ func (r *mutationResolver) CreatePost(ctx context.Context, input model.CreatePos
 		return nil, grapherror.InvalidID("authorId", err)
 	}
 
-	p, err := r.posts.PublishNewPost(ctx, &post.NewPostParams{
+	p, err := r.posts.Publish(ctx, post.PublishParams{
 		AuthorID:        authorID,
 		Title:           input.Title,
 		Body:            input.Body,
@@ -49,7 +49,7 @@ func (r *mutationResolver) SetPostCommentsEnabled(ctx context.Context, input mod
 		return nil, grapherror.InvalidID("authorId", err)
 	}
 
-	p, err := r.posts.SetCommentsToEnabled(ctx, postID, authorID, input.Enabled)
+	p, err := r.posts.SetCommentsEnabled(ctx, postID, authorID, input.Enabled)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (r *mutationResolver) CreateComment(ctx context.Context, input model.Create
 		parentID = &parsed
 	}
 
-	comm, err := r.comments.PublishNewComment(ctx, &comment.NewCommentParams{
+	comm, err := r.comments.Publish(ctx, comment.PublishParams{
 		PostID:   postID,
 		ParentID: parentID,
 		AuthorID: authorID,
@@ -102,7 +102,7 @@ func (r *queryResolver) Posts(ctx context.Context, first int32, after *graphscal
 		}
 	}
 
-	posts, err := r.posts.ListPosts(ctx, &post.ListParams{
+	posts, err := r.posts.List(ctx, post.ListParams{
 		Limit: int(first),
 		After: pos,
 	})
@@ -120,7 +120,7 @@ func (r *queryResolver) Post(ctx context.Context, id string) (*model.Post, error
 		return nil, grapherror.InvalidID("postId", err)
 	}
 
-	p, err := r.posts.PostByID(ctx, postID)
+	p, err := r.posts.GetByID(ctx, postID)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (r *queryResolver) Comment(ctx context.Context, id string) (*model.Comment,
 		return nil, grapherror.InvalidID("commentId", err)
 	}
 
-	comm, err := r.comments.CommentByID(ctx, commID)
+	comm, err := r.comments.GetByID(ctx, commID)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +171,7 @@ func (r *queryResolver) Comments(ctx context.Context, postID string, parentID *s
 		}
 	}
 
-	comms, err := r.comments.List(ctx, &comment.ListParams{
+	comms, err := r.comments.List(ctx, comment.ListParams{
 		PostID:   parsedPostID,
 		ParentID: parsedParentID,
 		Limit:    int(first),

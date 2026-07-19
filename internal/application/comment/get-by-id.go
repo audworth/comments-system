@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) CommentByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error) {
+func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error) {
 	comm, err := s.repo.CommentByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("get comment %s: %w", id, err)

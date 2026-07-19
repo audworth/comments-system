@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) PostByID(ctx context.Context, id uuid.UUID) (*domain.Post, error) {
+func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (*domain.Post, error) {
 	post, err := s.repo.PostByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("get post %s: %w", id, err)

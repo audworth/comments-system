@@ -11,7 +11,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestService_PublishNewComment(t *testing.T) {
+func TestService_Publish(t *testing.T) {
 	t.Parallel()
 
 	repo, notifier, svc := newTestService(t)
@@ -32,7 +32,7 @@ func TestService_PublishNewComment(t *testing.T) {
 		},
 	)
 
-	created, err := svc.PublishNewComment(t.Context(), &NewCommentParams{
+	created, err := svc.Publish(t.Context(), PublishParams{
 		PostID:   postID,
 		ParentID: &parentID,
 		AuthorID: authorID,
@@ -52,11 +52,11 @@ func TestService_PublishNewComment(t *testing.T) {
 	require.Equal(t, time.UTC, saved.CreatedAt.Location())
 }
 
-func TestService_PublishNewComment_RejectsInvalidComment(t *testing.T) {
+func TestService_Publish_RejectsInvalidComment(t *testing.T) {
 	t.Parallel()
 
 	_, _, svc := newTestService(t)
-	created, err := svc.PublishNewComment(t.Context(), &NewCommentParams{
+	created, err := svc.Publish(t.Context(), PublishParams{
 		PostID:   uuid.New(),
 		AuthorID: uuid.New(),
 		Body:     "",
@@ -67,7 +67,7 @@ func TestService_PublishNewComment_RejectsInvalidComment(t *testing.T) {
 	require.ErrorIs(t, err, domain.ErrEmptyComment)
 }
 
-func TestService_PublishNewComment_ReturnsAndNotifiesRepositoryResult(t *testing.T) {
+func TestService_Publish_ReturnsAndNotifiesRepositoryResult(t *testing.T) {
 	t.Parallel()
 
 	repoResult := &domain.Comment{
@@ -87,7 +87,7 @@ func TestService_PublishNewComment_ReturnsAndNotifiesRepositoryResult(t *testing
 	)
 	notifier.EXPECT().NotifyCreated(gomock.Any(), repoResult).Return(nil)
 
-	created, err := svc.PublishNewComment(t.Context(), &NewCommentParams{
+	created, err := svc.Publish(t.Context(), PublishParams{
 		PostID:   repoResult.PostID,
 		AuthorID: repoResult.AuthorID,
 		Body:     "исходный",
@@ -98,13 +98,13 @@ func TestService_PublishNewComment_ReturnsAndNotifiesRepositoryResult(t *testing
 	require.NotEqual(t, input.ID, created.ID)
 }
 
-func TestService_PublishNewComment_RepositoryFails(t *testing.T) {
+func TestService_Publish_RepositoryFails(t *testing.T) {
 	t.Parallel()
 
 	repo, _, service := newTestService(t)
 	repo.EXPECT().NewComment(gomock.Any(), gomock.Any()).Return(nil, errRepo)
 
-	created, err := service.PublishNewComment(t.Context(), &NewCommentParams{
+	created, err := service.Publish(t.Context(), PublishParams{
 		PostID:   uuid.New(),
 		AuthorID: uuid.New(),
 		Body:     "комментарий",
@@ -115,7 +115,7 @@ func TestService_PublishNewComment_RepositoryFails(t *testing.T) {
 	require.ErrorIs(t, err, errRepo)
 }
 
-func TestService_PublishNewComment_IgnoresNotifierFail(t *testing.T) {
+func TestService_Publish_IgnoresNotifierFail(t *testing.T) {
 	t.Parallel()
 
 	repo, notifier, svc := newTestService(t)
@@ -128,7 +128,7 @@ func TestService_PublishNewComment_IgnoresNotifierFail(t *testing.T) {
 	)
 	notifier.EXPECT().NotifyCreated(gomock.Any(), gomock.Any()).Return(errNotifier)
 
-	created, err := svc.PublishNewComment(t.Context(), &NewCommentParams{
+	created, err := svc.Publish(t.Context(), PublishParams{
 		PostID:   uuid.New(),
 		AuthorID: uuid.New(),
 		Body:     "комментарий",
@@ -138,7 +138,7 @@ func TestService_PublishNewComment_IgnoresNotifierFail(t *testing.T) {
 	require.Same(t, saved, created)
 }
 
-func TestService_PublishNewComment_IsSavedBeforeNotifying(t *testing.T) {
+func TestService_Publish_IsSavedBeforeNotifying(t *testing.T) {
 	t.Parallel()
 
 	repo, notifier, service := newTestService(t)
@@ -151,7 +151,7 @@ func TestService_PublishNewComment_IsSavedBeforeNotifying(t *testing.T) {
 		notifier.EXPECT().NotifyCreated(gomock.Any(), gomock.Any()).Return(nil),
 	)
 
-	_, err := service.PublishNewComment(t.Context(), &NewCommentParams{
+	_, err := service.Publish(t.Context(), PublishParams{
 		PostID:   uuid.New(),
 		AuthorID: uuid.New(),
 		Body:     "комментарий",

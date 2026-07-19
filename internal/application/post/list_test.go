@@ -23,9 +23,9 @@ func TestService_List(t *testing.T) {
 		HasNextPage: true,
 	}
 	repo, svc := newTestService(t)
-	repo.EXPECT().ListPosts(gomock.Any(), &params).Return(want, nil)
+	repo.EXPECT().ListPosts(gomock.Any(), params).Return(want, nil)
 
-	got, err := svc.ListPosts(t.Context(), &params)
+	got, err := svc.List(t.Context(), params)
 
 	require.NoError(t, err)
 	require.Same(t, want, got)
@@ -41,9 +41,9 @@ func TestService_List_AcceptsBoundaryLimits(t *testing.T) {
 			repo, svc := newTestService(t)
 			want := &Page{}
 			params := ListParams{Limit: limit}
-			repo.EXPECT().ListPosts(gomock.Any(), &params).Return(want, nil)
+			repo.EXPECT().ListPosts(gomock.Any(), params).Return(want, nil)
 
-			got, err := svc.ListPosts(t.Context(), &params)
+			got, err := svc.List(t.Context(), params)
 
 			require.NoError(t, err)
 			require.Same(t, want, got)
@@ -59,7 +59,7 @@ func TestService_List_RejectsInvalidLimit(t *testing.T) {
 			t.Parallel()
 
 			_, svc := newTestService(t)
-			page, err := svc.ListPosts(t.Context(), &ListParams{Limit: limit})
+			page, err := svc.List(t.Context(), ListParams{Limit: limit})
 
 			require.Nil(t, page)
 			require.ErrorIs(t, err, application.ErrInvalidPageSize)
@@ -72,9 +72,9 @@ func TestService_List_RepositoryFail(t *testing.T) {
 
 	repo, svc := newTestService(t)
 	params := ListParams{Limit: 10}
-	repo.EXPECT().ListPosts(gomock.Any(), &params).Return(nil, ErrNotFound)
+	repo.EXPECT().ListPosts(gomock.Any(), params).Return(nil, ErrNotFound)
 
-	page, err := svc.ListPosts(t.Context(), &params)
+	page, err := svc.List(t.Context(), params)
 
 	require.Nil(t, page)
 	require.ErrorContains(t, err, "list posts")

@@ -17,7 +17,7 @@ func TestService_List(t *testing.T) {
 
 	postID, parentID := uuid.New(), uuid.New()
 	after := &Position{CreatedAt: time.Now().UTC(), ID: uuid.New()}
-	params := &ListParams{
+	params := ListParams{
 		PostID:   postID,
 		ParentID: &parentID,
 		Limit:    25,
@@ -49,7 +49,7 @@ func TestService_List_AcceptsBoundaryLimits(t *testing.T) {
 			t.Parallel()
 
 			repo, _, svc := newTestService(t)
-			params := &ListParams{PostID: uuid.New(), Limit: limit}
+			params := ListParams{PostID: uuid.New(), Limit: limit}
 			want := &Page{}
 			repo.EXPECT().ListChildren(gomock.Any(), params).Return(want, nil)
 
@@ -68,7 +68,7 @@ func TestService_List_RejectsInvalidLimit(t *testing.T) {
 			t.Parallel()
 
 			_, _, svc := newTestService(t)
-			page, err := svc.List(t.Context(), &ListParams{PostID: uuid.New(), Limit: limit})
+			page, err := svc.List(t.Context(), ListParams{PostID: uuid.New(), Limit: limit})
 
 			require.Nil(t, page)
 			require.ErrorIs(t, err, application.ErrInvalidPageSize)
@@ -81,7 +81,7 @@ func TestService_List_RepositoryFail(t *testing.T) {
 
 	postID := uuid.New()
 	repo, _, svc := newTestService(t)
-	params := &ListParams{PostID: postID, Limit: 10}
+	params := ListParams{PostID: postID, Limit: 10}
 	repo.EXPECT().ListChildren(gomock.Any(), params).Return(nil, errRepo)
 
 	page, err := svc.List(t.Context(), params)

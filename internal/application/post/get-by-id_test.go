@@ -9,7 +9,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestService_PostByID(t *testing.T) {
+func TestService_GetByID(t *testing.T) {
 	t.Parallel()
 
 	id := uuid.New()
@@ -17,20 +17,20 @@ func TestService_PostByID(t *testing.T) {
 	repo, svc := newTestService(t)
 	repo.EXPECT().PostByID(gomock.Any(), id).Return(want, nil)
 
-	got, err := svc.PostByID(t.Context(), id)
+	got, err := svc.GetByID(t.Context(), id)
 
 	require.NoError(t, err)
 	require.Same(t, want, got)
 }
 
-func TestService_PostByID_RepositoryFail(t *testing.T) {
+func TestService_GetByID_RepositoryFail(t *testing.T) {
 	t.Parallel()
 
 	id := uuid.New()
 	repo, svc := newTestService(t)
 	repo.EXPECT().PostByID(gomock.Any(), id).Return(nil, ErrNotFound)
 
-	got, err := svc.PostByID(t.Context(), id)
+	got, err := svc.GetByID(t.Context(), id)
 
 	require.Nil(t, got)
 	require.ErrorContains(t, err, "get post "+id.String())

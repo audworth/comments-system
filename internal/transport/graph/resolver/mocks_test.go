@@ -44,64 +44,64 @@ func (m *MockPostsService) EXPECT() *MockPostsServiceMockRecorder {
 	return m.recorder
 }
 
-// ListPosts mocks base method.
-func (m *MockPostsService) ListPosts(ctx context.Context, params *post.ListParams) (*post.Page, error) {
+// GetByID mocks base method.
+func (m *MockPostsService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Post, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPosts", ctx, params)
+	ret := m.ctrl.Call(m, "GetByID", ctx, id)
+	ret0, _ := ret[0].(*domain.Post)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByID indicates an expected call of GetByID.
+func (mr *MockPostsServiceMockRecorder) GetByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockPostsService)(nil).GetByID), ctx, id)
+}
+
+// List mocks base method.
+func (m *MockPostsService) List(ctx context.Context, params post.ListParams) (*post.Page, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", ctx, params)
 	ret0, _ := ret[0].(*post.Page)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListPosts indicates an expected call of ListPosts.
-func (mr *MockPostsServiceMockRecorder) ListPosts(ctx, params any) *gomock.Call {
+// List indicates an expected call of List.
+func (mr *MockPostsServiceMockRecorder) List(ctx, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPosts", reflect.TypeOf((*MockPostsService)(nil).ListPosts), ctx, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockPostsService)(nil).List), ctx, params)
 }
 
-// PostByID mocks base method.
-func (m *MockPostsService) PostByID(ctx context.Context, id uuid.UUID) (*domain.Post, error) {
+// Publish mocks base method.
+func (m *MockPostsService) Publish(ctx context.Context, params post.PublishParams) (*domain.Post, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PostByID", ctx, id)
+	ret := m.ctrl.Call(m, "Publish", ctx, params)
 	ret0, _ := ret[0].(*domain.Post)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// PostByID indicates an expected call of PostByID.
-func (mr *MockPostsServiceMockRecorder) PostByID(ctx, id any) *gomock.Call {
+// Publish indicates an expected call of Publish.
+func (mr *MockPostsServiceMockRecorder) Publish(ctx, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostByID", reflect.TypeOf((*MockPostsService)(nil).PostByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockPostsService)(nil).Publish), ctx, params)
 }
 
-// PublishNewPost mocks base method.
-func (m *MockPostsService) PublishNewPost(ctx context.Context, params *post.NewPostParams) (*domain.Post, error) {
+// SetCommentsEnabled mocks base method.
+func (m *MockPostsService) SetCommentsEnabled(ctx context.Context, postID, authorID uuid.UUID, enabled bool) (*domain.Post, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PublishNewPost", ctx, params)
+	ret := m.ctrl.Call(m, "SetCommentsEnabled", ctx, postID, authorID, enabled)
 	ret0, _ := ret[0].(*domain.Post)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// PublishNewPost indicates an expected call of PublishNewPost.
-func (mr *MockPostsServiceMockRecorder) PublishNewPost(ctx, params any) *gomock.Call {
+// SetCommentsEnabled indicates an expected call of SetCommentsEnabled.
+func (mr *MockPostsServiceMockRecorder) SetCommentsEnabled(ctx, postID, authorID, enabled any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishNewPost", reflect.TypeOf((*MockPostsService)(nil).PublishNewPost), ctx, params)
-}
-
-// SetCommentsToEnabled mocks base method.
-func (m *MockPostsService) SetCommentsToEnabled(ctx context.Context, postID, authorID uuid.UUID, enabled bool) (*domain.Post, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetCommentsToEnabled", ctx, postID, authorID, enabled)
-	ret0, _ := ret[0].(*domain.Post)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SetCommentsToEnabled indicates an expected call of SetCommentsToEnabled.
-func (mr *MockPostsServiceMockRecorder) SetCommentsToEnabled(ctx, postID, authorID, enabled any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCommentsToEnabled", reflect.TypeOf((*MockPostsService)(nil).SetCommentsToEnabled), ctx, postID, authorID, enabled)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCommentsEnabled", reflect.TypeOf((*MockPostsService)(nil).SetCommentsEnabled), ctx, postID, authorID, enabled)
 }
 
 // MockUsersService is a mock of UsersService interface.
@@ -128,19 +128,19 @@ func (m *MockUsersService) EXPECT() *MockUsersServiceMockRecorder {
 	return m.recorder
 }
 
-// UserByID mocks base method.
-func (m *MockUsersService) UserByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
+// GetByID mocks base method.
+func (m *MockUsersService) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UserByID", ctx, id)
+	ret := m.ctrl.Call(m, "GetByID", ctx, id)
 	ret0, _ := ret[0].(*domain.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// UserByID indicates an expected call of UserByID.
-func (mr *MockUsersServiceMockRecorder) UserByID(ctx, id any) *gomock.Call {
+// GetByID indicates an expected call of GetByID.
+func (mr *MockUsersServiceMockRecorder) GetByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserByID", reflect.TypeOf((*MockUsersService)(nil).UserByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockUsersService)(nil).GetByID), ctx, id)
 }
 
 // MockCommentsService is a mock of CommentsService interface.
@@ -167,23 +167,23 @@ func (m *MockCommentsService) EXPECT() *MockCommentsServiceMockRecorder {
 	return m.recorder
 }
 
-// CommentByID mocks base method.
-func (m *MockCommentsService) CommentByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error) {
+// GetByID mocks base method.
+func (m *MockCommentsService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CommentByID", ctx, id)
+	ret := m.ctrl.Call(m, "GetByID", ctx, id)
 	ret0, _ := ret[0].(*domain.Comment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CommentByID indicates an expected call of CommentByID.
-func (mr *MockCommentsServiceMockRecorder) CommentByID(ctx, id any) *gomock.Call {
+// GetByID indicates an expected call of GetByID.
+func (mr *MockCommentsServiceMockRecorder) GetByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CommentByID", reflect.TypeOf((*MockCommentsService)(nil).CommentByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockCommentsService)(nil).GetByID), ctx, id)
 }
 
 // List mocks base method.
-func (m *MockCommentsService) List(ctx context.Context, params *comment.ListParams) (*comment.Page, error) {
+func (m *MockCommentsService) List(ctx context.Context, params comment.ListParams) (*comment.Page, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "List", ctx, params)
 	ret0, _ := ret[0].(*comment.Page)
@@ -197,17 +197,17 @@ func (mr *MockCommentsServiceMockRecorder) List(ctx, params any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockCommentsService)(nil).List), ctx, params)
 }
 
-// PublishNewComment mocks base method.
-func (m *MockCommentsService) PublishNewComment(ctx context.Context, params *comment.NewCommentParams) (*domain.Comment, error) {
+// Publish mocks base method.
+func (m *MockCommentsService) Publish(ctx context.Context, params comment.PublishParams) (*domain.Comment, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PublishNewComment", ctx, params)
+	ret := m.ctrl.Call(m, "Publish", ctx, params)
 	ret0, _ := ret[0].(*domain.Comment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// PublishNewComment indicates an expected call of PublishNewComment.
-func (mr *MockCommentsServiceMockRecorder) PublishNewComment(ctx, params any) *gomock.Call {
+// Publish indicates an expected call of Publish.
+func (mr *MockCommentsServiceMockRecorder) Publish(ctx, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishNewComment", reflect.TypeOf((*MockCommentsService)(nil).PublishNewComment), ctx, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockCommentsService)(nil).Publish), ctx, params)
 }

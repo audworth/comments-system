@@ -11,7 +11,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestService_PublishNewPost(t *testing.T) {
+func TestService_Publish(t *testing.T) {
 	t.Parallel()
 
 	repo, svc := newTestService(t)
@@ -25,7 +25,7 @@ func TestService_PublishNewPost(t *testing.T) {
 		},
 	)
 
-	created, err := svc.PublishNewPost(t.Context(), &NewPostParams{
+	created, err := svc.Publish(t.Context(), PublishParams{
 		AuthorID:        authorID,
 		Title:           "title",
 		Body:            "body",
@@ -44,11 +44,11 @@ func TestService_PublishNewPost(t *testing.T) {
 	require.Equal(t, time.UTC, saved.CreatedAt.Location())
 }
 
-func TestService_PublishNewPost_RejectsInvalidPost(t *testing.T) {
+func TestService_Publish_RejectsInvalidPost(t *testing.T) {
 	t.Parallel()
 
 	_, svc := newTestService(t)
-	created, err := svc.PublishNewPost(t.Context(), &NewPostParams{
+	created, err := svc.Publish(t.Context(), PublishParams{
 		AuthorID: uuid.New(),
 		Title:    "",
 		Body:     "body",
@@ -59,7 +59,7 @@ func TestService_PublishNewPost_RejectsInvalidPost(t *testing.T) {
 	require.ErrorIs(t, err, domain.ErrEmptyPostTitle)
 }
 
-func TestService_PublishNewPost_ReturnsRepositoryResult(t *testing.T) {
+func TestService_Publish_ReturnsRepositoryResult(t *testing.T) {
 	t.Parallel()
 
 	repositoryResult := &domain.Post{
@@ -79,7 +79,7 @@ func TestService_PublishNewPost_ReturnsRepositoryResult(t *testing.T) {
 		},
 	)
 
-	created, err := svc.PublishNewPost(t.Context(), &NewPostParams{
+	created, err := svc.Publish(t.Context(), PublishParams{
 		AuthorID: repositoryResult.AuthorID,
 		Title:    "заголовок1",
 		Body:     "тело1",
@@ -90,13 +90,13 @@ func TestService_PublishNewPost_ReturnsRepositoryResult(t *testing.T) {
 	require.NotEqual(t, saved.ID, created.ID)
 }
 
-func TestService_PublishNewPost_RepositoryFails(t *testing.T) {
+func TestService_Publish_RepositoryFails(t *testing.T) {
 	t.Parallel()
 
 	repo, svc := newTestService(t)
 	repo.EXPECT().NewPost(gomock.Any(), gomock.Any()).Return(nil, ErrNotFound)
 
-	created, err := svc.PublishNewPost(t.Context(), &NewPostParams{
+	created, err := svc.Publish(t.Context(), PublishParams{
 		AuthorID: uuid.New(),
 		Title:    "заголовок",
 		Body:     "тело",

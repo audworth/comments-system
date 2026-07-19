@@ -43,7 +43,7 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // ListPosts mocks base method.
-func (m *MockRepository) ListPosts(ctx context.Context, params *ListParams) (*Page, error) {
+func (m *MockRepository) ListPosts(ctx context.Context, params ListParams) (*Page, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPosts", ctx, params)
 	ret0, _ := ret[0].(*Page)

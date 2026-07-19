@@ -10,7 +10,7 @@ import (
 )
 
 type UserReader interface {
-	UsersByIDs(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]*domain.User, error)
+	GetByIDs(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]*domain.User, error)
 }
 
 func GetUser(ctx context.Context, id string) (*domain.User, error) {
@@ -47,7 +47,7 @@ func GetUsers(ctx context.Context, ids []string) ([]*domain.User, error) {
 
 func newUserLoader(users UserReader) *dataloadgen.Loader[uuid.UUID, *domain.User] {
 	return dataloadgen.NewMappedLoader(
-		users.UsersByIDs,
+		users.GetByIDs,
 		dataloadgen.WithWait(loaderWait),
 		dataloadgen.WithBatchCapacity(loaderBatchCapacity),
 	)

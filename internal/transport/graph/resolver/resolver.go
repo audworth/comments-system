@@ -17,20 +17,20 @@ import (
 
 //go:generate go tool mockgen -destination=mocks_test.go -package=resolver . PostsService,UsersService,CommentsService
 type PostsService interface {
-	PublishNewPost(ctx context.Context, params *post.NewPostParams) (*domain.Post, error)
-	PostByID(ctx context.Context, id uuid.UUID) (*domain.Post, error)
-	ListPosts(ctx context.Context, params *post.ListParams) (*post.Page, error)
-	SetCommentsToEnabled(ctx context.Context, postID uuid.UUID, authorID uuid.UUID, enabled bool) (*domain.Post, error)
+	Publish(ctx context.Context, params post.PublishParams) (*domain.Post, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Post, error)
+	List(ctx context.Context, params post.ListParams) (*post.Page, error)
+	SetCommentsEnabled(ctx context.Context, postID uuid.UUID, authorID uuid.UUID, enabled bool) (*domain.Post, error)
 }
 
 type UsersService interface {
-	UserByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
 }
 
 type CommentsService interface {
-	PublishNewComment(ctx context.Context, params *comment.NewCommentParams) (*domain.Comment, error)
-	CommentByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error)
-	List(ctx context.Context, params *comment.ListParams) (*comment.Page, error)
+	Publish(ctx context.Context, params comment.PublishParams) (*domain.Comment, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error)
+	List(ctx context.Context, params comment.ListParams) (*comment.Page, error)
 }
 
 var (

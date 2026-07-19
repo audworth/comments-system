@@ -19,7 +19,7 @@ type CommentPageKey struct {
 }
 
 type CommentReader interface {
-	ListBatchComments(
+	ListBatch(
 		ctx context.Context,
 		params []comment.ListParams,
 	) ([]*comment.Page, error)
@@ -35,7 +35,7 @@ func newCommentPageLoader(
 				params[i] = listParamsFromKey(key)
 			}
 
-			pages, err := comments.ListBatchComments(ctx, params)
+			pages, err := comments.ListBatch(ctx, params)
 			if err != nil {
 				return nil, []error{err}
 			}

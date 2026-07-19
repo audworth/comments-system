@@ -10,7 +10,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestService_ListBatchComments(t *testing.T) {
+func TestService_ListBatch(t *testing.T) {
 	t.Parallel()
 
 	params := []ListParams{
@@ -21,17 +21,17 @@ func TestService_ListBatchComments(t *testing.T) {
 	repo, _, svc := newTestService(t)
 	repo.EXPECT().ListChildrenBatch(gomock.Any(), params).Return(want, nil)
 
-	got, err := svc.ListBatchComments(t.Context(), params)
+	got, err := svc.ListBatch(t.Context(), params)
 
 	require.NoError(t, err)
 	require.Equal(t, want, got)
 }
 
-func TestService_ListBatchComments_RejectsInvalidLimit(t *testing.T) {
+func TestService_ListBatch_RejectsInvalidLimit(t *testing.T) {
 	t.Parallel()
 
 	_, _, svc := newTestService(t)
-	pages, err := svc.ListBatchComments(t.Context(), []ListParams{
+	pages, err := svc.ListBatch(t.Context(), []ListParams{
 		{PostID: uuid.New(), Limit: 20},
 		{PostID: uuid.New(), Limit: 101},
 	})
@@ -41,18 +41,18 @@ func TestService_ListBatchComments_RejectsInvalidLimit(t *testing.T) {
 	require.ErrorContains(t, err, "comment page size 1")
 }
 
-func TestService_ListBatchComments_EmptyBatch(t *testing.T) {
+func TestService_ListBatch_EmptyBatch(t *testing.T) {
 	t.Parallel()
 
 	_, _, svc := newTestService(t)
-	pages, err := svc.ListBatchComments(t.Context(), nil)
+	pages, err := svc.ListBatch(t.Context(), nil)
 
 	require.NoError(t, err)
 	require.Empty(t, pages)
 	require.NotNil(t, pages)
 }
 
-func TestService_ListBatchComments_RepositoryFails(t *testing.T) {
+func TestService_ListBatch_RepositoryFails(t *testing.T) {
 	t.Parallel()
 
 	params := []ListParams{{PostID: uuid.New(), Limit: 20}}
@@ -60,14 +60,14 @@ func TestService_ListBatchComments_RepositoryFails(t *testing.T) {
 	repo, _, svc := newTestService(t)
 	repo.EXPECT().ListChildrenBatch(gomock.Any(), params).Return(nil, wantErr)
 
-	pages, err := svc.ListBatchComments(t.Context(), params)
+	pages, err := svc.ListBatch(t.Context(), params)
 
 	require.Nil(t, pages)
 	require.ErrorIs(t, err, wantErr)
 	require.ErrorContains(t, err, "list comment pages")
 }
 
-func TestService_ListBatchComments_RejectsWrongResultCount(t *testing.T) {
+func TestService_ListBatch_RejectsWrongResultCount(t *testing.T) {
 	t.Parallel()
 
 	params := []ListParams{
@@ -77,7 +77,7 @@ func TestService_ListBatchComments_RejectsWrongResultCount(t *testing.T) {
 	repo, _, svc := newTestService(t)
 	repo.EXPECT().ListChildrenBatch(gomock.Any(), params).Return([]*Page{{}}, nil)
 
-	pages, err := svc.ListBatchComments(t.Context(), params)
+	pages, err := svc.ListBatch(t.Context(), params)
 
 	require.Nil(t, pages)
 	require.ErrorContains(t, err, "returned 1 pages for 2 requests")

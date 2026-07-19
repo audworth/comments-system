@@ -9,14 +9,14 @@ import (
 	"github.com/google/uuid"
 )
 
-type NewPostParams struct {
+type PublishParams struct {
 	AuthorID        uuid.UUID
 	Title           string
 	Body            string
 	CommentsEnabled bool
 }
 
-func (s *Service) PublishNewPost(ctx context.Context, params *NewPostParams) (*domain.Post, error) {
+func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Post, error) {
 	p, err := domain.NewPost(
 		uuid.New(),
 		params.AuthorID,

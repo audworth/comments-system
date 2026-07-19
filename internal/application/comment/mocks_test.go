@@ -58,7 +58,7 @@ func (mr *MockRepositoryMockRecorder) CommentByID(ctx, id any) *gomock.Call {
 }
 
 // ListChildren mocks base method.
-func (m *MockRepository) ListChildren(ctx context.Context, params *ListParams) (*Page, error) {
+func (m *MockRepository) ListChildren(ctx context.Context, params ListParams) (*Page, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListChildren", ctx, params)
 	ret0, _ := ret[0].(*Page)

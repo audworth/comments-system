@@ -17,13 +17,13 @@ import (
 )
 
 const (
-	queryCacheSize   = 1000
-	parserTokenLimit = 10000
+	queryCacheSize       = 1000
+	parserTokenLimit     = 10000
+	queryComplexityLimit = 5000
 )
 
 type HandlerConfig struct {
-	Local           bool
-	ComplexityLimit int
+	Local bool
 }
 
 func NewHandler(
@@ -44,7 +44,7 @@ func NewHandler(
 	graphql.AddTransport(transport.POST{UseGrapQLResponseJsonByDefault: true})
 	graphql.SetQueryCache(lru.New[*ast.QueryDocument](queryCacheSize))
 	graphql.SetParserTokenLimit(parserTokenLimit)
-	graphql.Use(extension.FixedComplexityLimit(config.ComplexityLimit))
+	graphql.Use(extension.FixedComplexityLimit(queryComplexityLimit))
 	graphql.SetErrorPresenter(grapherror.NewPresenter(logger).Present)
 	graphql.SetRecoverFunc(grapherror.NewRecoverFunc(logger))
 

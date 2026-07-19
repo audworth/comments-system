@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) SetCommentsToEnabled(ctx context.Context, postID uuid.UUID, author uuid.UUID, enabled bool) (*domain.Post, error) {
+func (s *Service) SetCommentsEnabled(ctx context.Context, postID uuid.UUID, author uuid.UUID, enabled bool) (*domain.Post, error) {
 	post, err := s.repo.SetCommentsEnabled(ctx, postID, author, enabled)
 	if err != nil {
 		return nil, fmt.Errorf("set comments enabled for post %s (author %s): %w", postID, author, err)

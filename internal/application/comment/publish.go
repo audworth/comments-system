@@ -9,14 +9,14 @@ import (
 	"github.com/google/uuid"
 )
 
-type NewCommentParams struct {
+type PublishParams struct {
 	PostID   uuid.UUID
 	ParentID *uuid.UUID
 	AuthorID uuid.UUID
 	Body     string
 }
 
-func (s *Service) PublishNewComment(ctx context.Context, params *NewCommentParams) (*domain.Comment, error) {
+func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Comment, error) {
 	comm, err := domain.NewComment(
 		uuid.New(),
 		params.PostID,
