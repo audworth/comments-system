@@ -1,12 +1,8 @@
 version: "3"
-vars:
-  APP_NAME: comments-system
-  MAIN_PACKAGE: ./cmd
-  GO_PACKAGES: ./...
+dotenv: [".env"]
 
-  COVERAGE_FILE: coverage.out
-  COVERAGE_HTML: coverage.html
-  MIN_COVERAGE: "90"
+vars:
+  GO_PACKAGES: ./...
 
 tasks:
   default:
@@ -27,12 +23,6 @@ tasks:
       - go generate ./internal/transport/graph/resolver
       - go tool gqlgen generate
 
-  fmt:
-    desc: форматировать код
-    cmds:
-      - go fmt {{.GO_PACKAGES}}
-      - golangci-lint fmt {{.GO_PACKAGES}}
-
   lint:
     desc: запустить линтер
     cmds:
@@ -46,8 +36,18 @@ tasks:
         -race
         {{.GO_PACKAGES}}
 
-  coverage:
-    desc: запустить юнит тесты и показать coverage
+  migrate:
+    desc: применить все миграции
     cmds:
-      - task: test
-      - go tool cover -func={{.COVERAGE_FILE}}
+      - go run ./cmd/migrate
+
+  seed:
+    desc: пересоздать нагрузочные сиды, удалив текущие данные
+    cmds:
+      - >-
+        docker compose exec -T postgres
+        psql
+        --username "$POSTGRES_USER"
+        --dbname "$POSTGRES_DB"
+        --file -
+        < seeds/dev.sql
