@@ -66,39 +66,3 @@ func TestNewPost_AcceptsLongUnicodeContent(t *testing.T) {
 	require.Equal(t, title, post.Title)
 	require.Equal(t, body, post.Body)
 }
-
-func TestPost_SetCommentEnabled(t *testing.T) {
-	t.Parallel()
-
-	names := map[bool]string{false: "disabled", true: "enabled"}
-	for _, enabled := range []bool{false, true} {
-		t.Run(names[enabled], func(t *testing.T) {
-			t.Parallel()
-
-			authorID := uuid.New()
-			p := Post{
-				AuthorID:        authorID,
-				CommentsEnabled: !enabled,
-			}
-
-			err := p.SetCommentEnabled(authorID, enabled)
-
-			require.NoError(t, err)
-			require.Equal(t, enabled, p.CommentsEnabled)
-		})
-	}
-}
-
-func TestPost_SetCommentEnabled_RejectsNonAuthor(t *testing.T) {
-	t.Parallel()
-
-	p := Post{
-		AuthorID:        uuid.New(),
-		CommentsEnabled: true,
-	}
-
-	err := p.SetCommentEnabled(uuid.New(), false)
-
-	require.ErrorIs(t, err, ErrNotPostAuthor)
-	require.True(t, p.CommentsEnabled)
-}

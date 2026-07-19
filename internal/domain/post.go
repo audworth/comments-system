@@ -11,7 +11,6 @@ import (
 var (
 	ErrEmptyPostTitle = errors.New("post title must not be empty")
 	ErrEmptyPostBody  = errors.New("post body must not be empty")
-	ErrNotPostAuthor  = errors.New("user is not the post author")
 )
 
 type Post struct {
@@ -22,16 +21,6 @@ type Post struct {
 	CommentsEnabled bool
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
-}
-
-func (p *Post) SetCommentEnabled(userID uuid.UUID, enabled bool) error {
-	if p.AuthorID != userID {
-		return ErrNotPostAuthor
-	}
-
-	p.CommentsEnabled = enabled
-
-	return nil
 }
 
 func NewPost(
