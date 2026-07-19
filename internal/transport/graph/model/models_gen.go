@@ -12,6 +12,7 @@ type Comment struct {
 	ID        string             `json:"id"`
 	PostID    string             `json:"postId"`
 	ParentID  *string            `json:"parentId,omitempty"`
+	AuthorID  string             `json:"authorId"`
 	Author    *User              `json:"author"`
 	Body      string             `json:"body"`
 	CreatedAt time.Time          `json:"createdAt"`
@@ -31,9 +32,10 @@ type CreateCommentInput struct {
 }
 
 type CreatePostInput struct {
-	AuthorID string `json:"authorId"`
-	Title    string `json:"title"`
-	Body     string `json:"body"`
+	AuthorID        string `json:"authorId"`
+	Title           string `json:"title"`
+	Body            string `json:"body"`
+	CommentsEnabled bool   `json:"commentsEnabled"`
 }
 
 type Mutation struct {
@@ -73,7 +75,6 @@ type Subscription struct {
 }
 
 type User struct {
-	ID          string `json:"id"`
-	Username    string `json:"username"`
-	DisplayName string `json:"displayName"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
