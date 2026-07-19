@@ -31,7 +31,7 @@ type ListParams struct {
 
 type Page struct {
 	Posts       []domain.Post
-	Next        *Position
+	EndCursor   *Position
 	HasNextPage bool
 }
 
@@ -39,7 +39,12 @@ type Repository interface {
 	Publish(ctx context.Context, post *domain.Post) (*domain.Post, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Post, error)
 	List(ctx context.Context, params ListParams) (*Page, error)
-	SetCommentsEnabled(ctx context.Context, postID uuid.UUID, authorID uuid.UUID, enabled bool) (*domain.Post, error)
+	SetCommentsEnabled(
+		ctx context.Context,
+		postID uuid.UUID,
+		authorID uuid.UUID,
+		enabled bool,
+	) (*domain.Post, error)
 }
 
 type Service struct {

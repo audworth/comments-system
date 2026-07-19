@@ -54,10 +54,10 @@ func PostConnectionFromPage(page *post.Page) (*PostConnection, error) {
 	}
 
 	var endCursor *graphscalar.Cursor
-	if page.Next != nil {
+	if page.EndCursor != nil {
 		enc, err := graphscalar.EncodeCursor(
-			page.Next.CreatedAt,
-			page.Next.ID,
+			page.EndCursor.CreatedAt,
+			page.EndCursor.ID,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("encode posts end cursor: %w", err)
