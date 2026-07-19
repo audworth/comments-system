@@ -2,7 +2,7 @@ begin;
 
 truncate table comments, posts, users;
 
--- 10 users
+-- 10 пользователей
 insert into users (id, name, created_at, updated_at)
 select
     ('00000000-0000-0000-0000-' || lpad(user_number::text, 12, '0'))::uuid,
@@ -31,7 +31,7 @@ select
     '2026-02-01 00:00:00+00'::timestamptz + make_interval(days => post_number)
 from generate_series(1, 10) as post_number;
 
--- 1 000 корневых комментариев на каждый пост
+-- 1000 комментариев на каждый пост
 insert into comments (
     id,
     post_id,
@@ -94,5 +94,56 @@ select
 from generate_series(1, 10) as post_number
 cross join generate_series(1, 1000) as comment_number
 cross join generate_series(1, 100) as reply_number;
+
+-- ветка глубиной 100
+insert into comments (
+    id,
+    post_id,
+    parent_id,
+    author_id,
+    body,
+    created_at,
+    updated_at
+)
+values (
+    '40000000-0001-0000-0000-000000000000'::uuid,
+    '10000000-0000-0000-0000-000000000001'::uuid,
+    null,
+    '00000000-0000-0000-0000-000000000001'::uuid,
+    'deep_thread_root',
+    '2026-05-01 00:00:00+00'::timestamptz,
+    '2026-05-01 00:00:00+00'::timestamptz
+);
+
+insert into comments (
+    id,
+    post_id,
+    parent_id,
+    author_id,
+    body,
+    created_at,
+    updated_at
+)
+select
+    (
+        '40000000-0001-0000-0000-' ||
+        lpad(depth::text, 12, '0')
+    )::uuid,
+    '10000000-0000-0000-0000-000000000001'::uuid,
+    (
+        '40000000-0001-0000-0000-' ||
+        lpad((depth - 1)::text, 12, '0')
+    )::uuid,
+    (
+        '00000000-0000-0000-0000-' ||
+        lpad((((depth - 1) % 10) + 1)::text, 12, '0')
+    )::uuid,
+    format('deep_reply_%s', depth),
+    '2026-05-01 00:00:00+00'::timestamptz
+        + depth * interval '1 microsecond',
+    '2026-05-01 00:00:00+00'::timestamptz
+        + depth * interval '1 microsecond'
+from generate_series(1, 100) as depth
+order by depth;
 
 commit;
