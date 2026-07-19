@@ -7,21 +7,59 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/audworth/comments-system/internal/transport/graph/dataloader"
+	grapherror "github.com/audworth/comments-system/internal/transport/graph/error"
 	"github.com/audworth/comments-system/internal/transport/graph/generated"
 	"github.com/audworth/comments-system/internal/transport/graph/graphscalar"
 	"github.com/audworth/comments-system/internal/transport/graph/model"
+	"github.com/google/uuid"
 )
 
 // Author is the resolver for the author field.
 func (r *commentResolver) Author(ctx context.Context, obj *model.Comment) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: Author - author"))
+	u, err := dataloader.GetUser(ctx, obj.AuthorID)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.UserFromDomain(u), nil
 }
 
 // Replies is the resolver for the replies field.
 func (r *commentResolver) Replies(ctx context.Context, obj *model.Comment, first int32, after *graphscalar.Cursor) (*model.CommentConnection, error) {
-	panic(fmt.Errorf("not implemented: Replies - replies"))
+	postID, err := uuid.Parse(obj.PostID)
+	if err != nil {
+		return nil, grapherror.InvalidID("postId", err)
+	}
+
+	commentID, err := uuid.Parse(obj.ID)
+	if err != nil {
+		return nil, grapherror.InvalidID("commentId", err)
+	}
+
+	key := dataloader.CommentPageKey{
+		PostID:   postID,
+		ParentID: commentID,
+		Limit:    int(first),
+	}
+
+	if after != nil {
+		pos, err := graphscalar.DecodeCursor(*after)
+		if err != nil {
+			return nil, grapherror.InvalidCursor(err)
+		}
+
+		key.AfterCreatedAt = pos.CreatedAt
+		key.AfterID = pos.ID
+	}
+
+	page, err := dataloader.GetCommentPage(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.CommentConnectionFromPage(page)
 }
 
 // Comment returns generated.CommentResolver implementation.
