@@ -9,7 +9,7 @@ import (
 	"github.com/vikstrous/dataloadgen"
 )
 
-type userReader interface {
+type UserReader interface {
 	UsersByIDs(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]*domain.User, error)
 }
 
@@ -45,7 +45,7 @@ func GetUsers(ctx context.Context, ids []string) ([]*domain.User, error) {
 	return loaders.UserLoader.LoadAll(ctx, userIDs)
 }
 
-func newUserLoader(users userReader) *dataloadgen.Loader[uuid.UUID, *domain.User] {
+func newUserLoader(users UserReader) *dataloadgen.Loader[uuid.UUID, *domain.User] {
 	return dataloadgen.NewMappedLoader(
 		users.UsersByIDs,
 		dataloadgen.WithWait(loaderWait),

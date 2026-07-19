@@ -24,14 +24,14 @@ type Loaders struct {
 	CommentPageLoader *dataloadgen.Loader[CommentPageKey, *comment.Page]
 }
 
-func NewLoaders(users userReader, comments commentReader) *Loaders {
+func NewLoaders(users UserReader, comments CommentReader) *Loaders {
 	return &Loaders{
 		UserLoader:        newUserLoader(users),
 		CommentPageLoader: newCommentPageLoader(comments),
 	}
 }
 
-func Middleware(users userReader, comments commentReader, next http.Handler) http.Handler {
+func Middleware(users UserReader, comments CommentReader, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), loadersKey, NewLoaders(users, comments))
 		next.ServeHTTP(w, r.WithContext(ctx))

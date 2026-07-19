@@ -18,7 +18,7 @@ type CommentPageKey struct {
 	AfterID        uuid.UUID
 }
 
-type commentReader interface {
+type CommentReader interface {
 	ListBatchComments(
 		ctx context.Context,
 		params []comment.ListParams,
@@ -26,7 +26,7 @@ type commentReader interface {
 }
 
 func newCommentPageLoader(
-	comments commentReader,
+	comments CommentReader,
 ) *dataloadgen.Loader[CommentPageKey, *comment.Page] {
 	return dataloadgen.NewLoader(
 		func(ctx context.Context, keys []CommentPageKey) ([]*comment.Page, []error) {
