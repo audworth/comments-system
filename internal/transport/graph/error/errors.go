@@ -41,24 +41,24 @@ func (e *ClientError) Unwrap() error {
 	return e.Err
 }
 
-func InvalidArgument(field string, message string, cause error) error {
+func InvalidArgument(field string, message string, err error) error {
 	return &ClientError{
 		Code:    CodeInvalidArgument,
 		Message: message,
 		Field:   field,
-		Err:     cause,
+		Err:     err,
 	}
 }
 
-func InvalidID(field string, cause error) error {
-	return InvalidArgument(field, "invalid ID", cause)
+func InvalidID(field string, err error) error {
+	return InvalidArgument(field, "invalid ID", err)
 }
 
-func InvalidCursor(field string, cause error) error {
+func InvalidCursor(err error) error {
 	return &ClientError{
 		Code:    CodeInvalidCursor,
 		Message: "invalid cursor",
-		Field:   field,
-		Err:     cause,
+		Field:   "after",
+		Err:     err,
 	}
 }

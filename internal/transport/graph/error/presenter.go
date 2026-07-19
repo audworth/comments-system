@@ -130,7 +130,7 @@ func (p *Presenter) Present(ctx context.Context, err error) *gqlerror.Error {
 		)
 	}
 
-	if _, ok := errors.AsType[*gqlerror.Error](err); ok {
+	if gqlErr, ok := errors.AsType[*gqlerror.Error](err); ok && gqlErr.Err == nil {
 		return presentedErr
 	}
 
