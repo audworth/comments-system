@@ -48,6 +48,7 @@ type PageInfo struct {
 
 type Post struct {
 	ID              string             `json:"id"`
+	AuthorID        string             `json:"authorId"`
 	Author          *User              `json:"author"`
 	Title           string             `json:"title"`
 	Body            string             `json:"body"`

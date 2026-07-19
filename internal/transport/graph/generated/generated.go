@@ -70,6 +70,7 @@ type ComplexityRoot struct {
 
 	Post struct {
 		Author          func(childComplexity int) int
+		AuthorID        func(childComplexity int) int
 		Body            func(childComplexity int) int
 		Comments        func(childComplexity int, first int32, after *graphscalar.Cursor) int
 		CommentsEnabled func(childComplexity int) int
@@ -268,6 +269,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Post.Author(childComplexity), true
+	case "Post.authorId":
+		if e.ComplexityRoot.Post.AuthorID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Post.AuthorID(childComplexity), true
 	case "Post.body":
 		if e.ComplexityRoot.Post.Body == nil {
 			break
@@ -568,6 +575,7 @@ type PageInfo {
 `, BuiltIn: false},
 	{Name: "../schema/post.graphqls", Input: `type Post {
     id: ID!
+    authorId: ID!
     author: User!
     title: String!
     body: String!
@@ -649,6 +657,8 @@ func (ec *executionContext) childFields_Post(ctx context.Context, field graphql.
 	switch field.Name {
 	case "id":
 		return ec.fieldContext_Post_id(ctx, field)
+	case "authorId":
+		return ec.fieldContext_Post_authorId(ctx, field)
 	case "author":
 		return ec.fieldContext_Post_author(ctx, field)
 	case "title":
@@ -1541,6 +1551,29 @@ func (ec *executionContext) _Post_id(ctx context.Context, field graphql.Collecte
 	)
 }
 func (ec *executionContext) fieldContext_Post_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Post", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _Post_authorId(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Post_authorId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.AuthorID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Post_authorId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("Post", field, false, false, errors.New("field of type ID does not have child fields"))
 }
 
@@ -3655,6 +3688,11 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = graphql.MarshalString("Post")
 		case "id":
 			out.Values[i] = ec._Post_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "authorId":
+			out.Values[i] = ec._Post_authorId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

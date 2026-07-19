@@ -12,7 +12,7 @@ import (
 func PostFromDomain(post *domain.Post) *Post {
 	return &Post{
 		ID:              post.ID.String(),
-		Author:          UserFromDomain(&post.Author),
+		AuthorID:        post.AuthorID.String(),
 		Title:           post.Title,
 		Body:            post.Body,
 		CommentsEnabled: post.CommentsEnabled,
