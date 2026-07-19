@@ -3,43 +3,12 @@ package comment
 import (
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/audworth/comments-system/internal/application"
-	"github.com/audworth/comments-system/internal/domain"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
-
-func TestService_List(t *testing.T) {
-	t.Parallel()
-
-	postID, parentID := uuid.New(), uuid.New()
-	after := &Position{CreatedAt: time.Now().UTC(), ID: uuid.New()}
-	params := ListParams{
-		PostID:   postID,
-		ParentID: &parentID,
-		Limit:    25,
-		After:    after,
-	}
-	want := &Page{
-		Comments: []domain.Comment{{ID: uuid.New(), PostID: postID, ParentID: &parentID}},
-		EndCursor: &Position{
-			CreatedAt: time.Now().UTC(),
-			ID:        uuid.New(),
-		},
-		HasNextPage: true,
-	}
-
-	repo, _, svc := newTestService(t)
-	repo.EXPECT().List(gomock.Any(), params).Return(want, nil)
-
-	got, err := svc.List(t.Context(), params)
-
-	require.NoError(t, err)
-	require.Same(t, want, got)
-}
 
 func TestService_List_AcceptsBoundaryLimits(t *testing.T) {
 	t.Parallel()

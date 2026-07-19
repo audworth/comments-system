@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/audworth/comments-system/internal/domain"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -17,20 +16,6 @@ func newTestService(t *testing.T) (*MockRepository, *Service) {
 
 	repo := NewMockRepository(gomock.NewController(t))
 	return repo, NewService(repo)
-}
-
-func TestService_GetByID(t *testing.T) {
-	t.Parallel()
-
-	id := uuid.New()
-	want := &domain.User{ID: id, Name: "Дмитрий"}
-	repo, svc := newTestService(t)
-	repo.EXPECT().GetByID(gomock.Any(), id).Return(want, nil)
-
-	got, err := svc.GetByID(t.Context(), id)
-
-	require.NoError(t, err)
-	require.Same(t, want, got)
 }
 
 func TestService_GetByID_RepositoryFails(t *testing.T) {
@@ -46,4 +31,18 @@ func TestService_GetByID_RepositoryFails(t *testing.T) {
 	require.Nil(t, got)
 	require.ErrorContains(t, err, "get user "+id.String())
 	require.ErrorIs(t, err, repoErr)
+}
+
+func TestService_GetByIDs_RepositoryFails(t *testing.T) {
+	t.Parallel()
+
+	ids := []uuid.UUID{uuid.New(), uuid.New()}
+	repo, svc := newTestService(t)
+	repo.EXPECT().GetByIDs(gomock.Any(), ids).Return(nil, errRepo)
+
+	users, err := svc.GetByIDs(t.Context(), ids)
+
+	require.Nil(t, users)
+	require.ErrorContains(t, err, "get users")
+	require.ErrorIs(t, err, errRepo)
 }

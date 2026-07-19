@@ -17,17 +17,18 @@ func TestService_Publish(t *testing.T) {
 	repo, notifier, svc := newTestService(t)
 	postID, parentID, authorID := uuid.New(), uuid.New(), uuid.New()
 	before := time.Now().UTC()
+	repositoryResult := &domain.Comment{ID: uuid.New(), PostID: postID, AuthorID: authorID}
 
-	var saved *domain.Comment
+	var submitted *domain.Comment
 	repo.EXPECT().Publish(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(_ context.Context, comment *domain.Comment) (*domain.Comment, error) {
-			saved = comment
-			return comment, nil
+			submitted = comment
+			return repositoryResult, nil
 		},
 	)
-	notifier.EXPECT().NotifyCreated(gomock.Any(), gomock.Any()).DoAndReturn(
+	notifier.EXPECT().NotifyCreated(gomock.Any(), repositoryResult).DoAndReturn(
 		func(_ context.Context, comment *domain.Comment) error {
-			require.Same(t, saved, comment)
+			require.Same(t, repositoryResult, comment)
 			return nil
 		},
 	)
@@ -41,15 +42,15 @@ func TestService_Publish(t *testing.T) {
 	after := time.Now().UTC()
 
 	require.NoError(t, err)
-	require.Same(t, saved, created)
-	require.NotEqual(t, uuid.Nil, saved.ID)
-	require.Equal(t, postID, saved.PostID)
-	require.NotNil(t, saved.ParentID)
-	require.Equal(t, parentID, *saved.ParentID)
-	require.Equal(t, authorID, saved.AuthorID)
-	require.Equal(t, "комментарий", saved.Body)
-	require.WithinRange(t, saved.CreatedAt, before, after)
-	require.Equal(t, time.UTC, saved.CreatedAt.Location())
+	require.Same(t, repositoryResult, created)
+	require.NotEqual(t, uuid.Nil, submitted.ID)
+	require.Equal(t, postID, submitted.PostID)
+	require.NotNil(t, submitted.ParentID)
+	require.Equal(t, parentID, *submitted.ParentID)
+	require.Equal(t, authorID, submitted.AuthorID)
+	require.Equal(t, "комментарий", submitted.Body)
+	require.WithinRange(t, submitted.CreatedAt, before, after)
+	require.Equal(t, time.UTC, submitted.CreatedAt.Location())
 }
 
 func TestService_Publish_RejectsInvalidComment(t *testing.T) {
@@ -65,37 +66,6 @@ func TestService_Publish_RejectsInvalidComment(t *testing.T) {
 	require.Nil(t, created)
 	require.ErrorContains(t, err, "invalid comment")
 	require.ErrorIs(t, err, domain.ErrEmptyComment)
-}
-
-func TestService_Publish_ReturnsAndNotifiesRepositoryResult(t *testing.T) {
-	t.Parallel()
-
-	repoResult := &domain.Comment{
-		ID:        uuid.New(),
-		PostID:    uuid.New(),
-		AuthorID:  uuid.New(),
-		Body:      "сохраненный",
-		CreatedAt: time.Now().UTC().Add(time.Second),
-	}
-	repo, notifier, svc := newTestService(t)
-	var input *domain.Comment
-	repo.EXPECT().Publish(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(_ context.Context, comment *domain.Comment) (*domain.Comment, error) {
-			input = comment
-			return repoResult, nil
-		},
-	)
-	notifier.EXPECT().NotifyCreated(gomock.Any(), repoResult).Return(nil)
-
-	created, err := svc.Publish(t.Context(), PublishParams{
-		PostID:   repoResult.PostID,
-		AuthorID: repoResult.AuthorID,
-		Body:     "исходный",
-	})
-
-	require.NoError(t, err)
-	require.Same(t, repoResult, created)
-	require.NotEqual(t, input.ID, created.ID)
 }
 
 func TestService_Publish_RepositoryFails(t *testing.T) {

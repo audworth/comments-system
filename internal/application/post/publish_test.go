@@ -17,11 +17,12 @@ func TestService_Publish(t *testing.T) {
 	repo, svc := newTestService(t)
 	authorID := uuid.New()
 	before := time.Now().UTC()
-	var saved *domain.Post
+	repositoryResult := &domain.Post{ID: uuid.New(), AuthorID: authorID}
+	var submitted *domain.Post
 	repo.EXPECT().Publish(gomock.Any(), gomock.Any()).DoAndReturn(
 		func(_ context.Context, post *domain.Post) (*domain.Post, error) {
-			saved = post
-			return post, nil
+			submitted = post
+			return repositoryResult, nil
 		},
 	)
 
@@ -34,14 +35,14 @@ func TestService_Publish(t *testing.T) {
 	after := time.Now().UTC()
 
 	require.NoError(t, err)
-	require.Same(t, saved, created)
-	require.NotEqual(t, uuid.Nil, saved.ID)
-	require.Equal(t, authorID, saved.AuthorID)
-	require.Equal(t, "title", saved.Title)
-	require.Equal(t, "body", saved.Body)
-	require.True(t, saved.CommentsEnabled)
-	require.WithinRange(t, saved.CreatedAt, before, after)
-	require.Equal(t, time.UTC, saved.CreatedAt.Location())
+	require.Same(t, repositoryResult, created)
+	require.NotEqual(t, uuid.Nil, submitted.ID)
+	require.Equal(t, authorID, submitted.AuthorID)
+	require.Equal(t, "title", submitted.Title)
+	require.Equal(t, "body", submitted.Body)
+	require.True(t, submitted.CommentsEnabled)
+	require.WithinRange(t, submitted.CreatedAt, before, after)
+	require.Equal(t, time.UTC, submitted.CreatedAt.Location())
 }
 
 func TestService_Publish_RejectsInvalidPost(t *testing.T) {
@@ -57,37 +58,6 @@ func TestService_Publish_RejectsInvalidPost(t *testing.T) {
 	require.Nil(t, created)
 	require.ErrorContains(t, err, "invalid post")
 	require.ErrorIs(t, err, domain.ErrEmptyPostTitle)
-}
-
-func TestService_Publish_ReturnsRepositoryResult(t *testing.T) {
-	t.Parallel()
-
-	repositoryResult := &domain.Post{
-		ID:              uuid.New(),
-		AuthorID:        uuid.New(),
-		Title:           "заголовок",
-		Body:            "тело",
-		CommentsEnabled: true,
-		CreatedAt:       time.Now().UTC().Add(time.Second),
-	}
-	repo, svc := newTestService(t)
-	var saved *domain.Post
-	repo.EXPECT().Publish(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(_ context.Context, post *domain.Post) (*domain.Post, error) {
-			saved = post
-			return repositoryResult, nil
-		},
-	)
-
-	created, err := svc.Publish(t.Context(), PublishParams{
-		AuthorID: repositoryResult.AuthorID,
-		Title:    "заголовок1",
-		Body:     "тело1",
-	})
-
-	require.NoError(t, err)
-	require.Same(t, repositoryResult, created)
-	require.NotEqual(t, saved.ID, created.ID)
 }
 
 func TestService_Publish_RepositoryFails(t *testing.T) {

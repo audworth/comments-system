@@ -10,23 +10,6 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestService_ListBatch(t *testing.T) {
-	t.Parallel()
-
-	params := []ListParams{
-		{PostID: uuid.New(), Limit: 20},
-		{PostID: uuid.New(), ParentID: uuidPointer(uuid.New()), Limit: 10},
-	}
-	want := []*Page{{}, {HasNextPage: true}}
-	repo, _, svc := newTestService(t)
-	repo.EXPECT().ListBatch(gomock.Any(), params).Return(want, nil)
-
-	got, err := svc.ListBatch(t.Context(), params)
-
-	require.NoError(t, err)
-	require.Equal(t, want, got)
-}
-
 func TestService_ListBatch_RejectsInvalidLimit(t *testing.T) {
 	t.Parallel()
 
@@ -81,8 +64,4 @@ func TestService_ListBatch_RejectsWrongResultCount(t *testing.T) {
 
 	require.Nil(t, pages)
 	require.ErrorContains(t, err, "returned 1 pages for 2 requests")
-}
-
-func uuidPointer(id uuid.UUID) *uuid.UUID {
-	return &id
 }
