@@ -1,4 +1,4 @@
-package db
+package inmem
 
 import (
 	"fmt"
@@ -17,8 +17,8 @@ const (
 	totalComments     = postsAmount*rootComments*(repliesPerComment+1) + maxThreadDepth + 1
 )
 
-func (db *InMemory) Seed() {
-	seeded := &InMemory{
+func (db *InMem) Seed() {
+	seeded := &InMem{
 		users:              make(map[uuid.UUID]domain.User),
 		posts:              make(map[uuid.UUID]domain.Post),
 		comments:           make(map[uuid.UUID]domain.Comment, totalComments),
@@ -143,6 +143,8 @@ func (db *InMemory) Seed() {
 		seeded.commentIDsByParent[key] = append(seeded.commentIDsByParent[key], id)
 		parentID = id
 	}
+
+	seeded.sortIndexes()
 
 	db.mu.Lock()
 	db.users = seeded.users
