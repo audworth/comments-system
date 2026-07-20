@@ -64,7 +64,7 @@ func (n *Notifier) NotifyCommentCreated(ctx context.Context, created *domain.Com
 	if err := n.client.Publish(ctx, topic, jsoned).Err(); err != nil {
 		n.logger.ErrorContext(
 			ctx,
-			"failed to publish comment notification to Redis",
+			"failed to publish comment notification",
 			slog.String("topic", topic),
 			slog.String("comment_id", created.ID.String()),
 			slog.String("post_id", created.PostID.String()),

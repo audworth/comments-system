@@ -55,7 +55,7 @@ func FromEnv() (Config, error) {
 	if seed := os.Getenv("SEED_IN_MEM"); seed != "" {
 		enabled, err := strconv.ParseBool(seed)
 		if err != nil {
-			return Config{}, fmt.Errorf("SEED_INMEM: %w", err)
+			return Config{}, fmt.Errorf("parse SEED_IN_MEM: %w", err)
 		}
 		cfg.SeedInMem = enabled
 	}
