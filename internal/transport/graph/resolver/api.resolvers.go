@@ -186,7 +186,40 @@ func (r *queryResolver) Comments(ctx context.Context, postID string, parentID *s
 
 // CommentCreated is the resolver for the commentCreated field.
 func (r *subscriptionResolver) CommentCreated(ctx context.Context, postID string) (<-chan *model.Comment, error) {
-	panic(fmt.Errorf("not implemented: CommentCreated - commentCreated"))
+	parsedPostID, err := uuid.Parse(postID)
+	if err != nil {
+		return nil, grapherror.InvalidID("postId", err)
+	}
+
+	comms, err := r.comments.SubscribeToPostComments(ctx, parsedPostID)
+	if err != nil {
+		return nil, fmt.Errorf("subscribe to post comments: %w", err)
+	}
+
+	out := make(chan *model.Comment)
+	go func() {
+		defer close(out)
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case created, ok := <-comms:
+				if !ok {
+					return
+				}
+
+				comm := model.CommentFromDomain(created)
+				select {
+				case out <- comm:
+				case <-ctx.Done():
+					return
+				}
+			}
+		}
+	}()
+
+	return out, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

@@ -20,7 +20,7 @@ type Notifier struct {
 	logger *slog.Logger
 }
 
-func New(client *goredis.Client, logger *slog.Logger) *Notifier {
+func NewNotifier(client *goredis.Client, logger *slog.Logger) *Notifier {
 	return &Notifier{
 		client: client,
 		logger: logger,

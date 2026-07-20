@@ -31,6 +31,7 @@ type CommentsService interface {
 	Publish(ctx context.Context, params comment.PublishParams) (*domain.Comment, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error)
 	List(ctx context.Context, params comment.ListParams) (*comment.Page, error)
+	SubscribeToPostComments(ctx context.Context, postID uuid.UUID) (<-chan *domain.Comment, error)
 }
 
 var (

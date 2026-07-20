@@ -19,7 +19,8 @@ func newTestService(t *testing.T) (*MockRepository, *MockNotifier, *Service) {
 	ctrl := gomock.NewController(t)
 	repo := NewMockRepository(ctrl)
 	notifier := NewMockNotifier(ctrl)
+	subscriber := NewMockSubscriber(ctrl)
 	logger := slog.New(slog.DiscardHandler)
 
-	return repo, notifier, NewService(repo, notifier, logger)
+	return repo, notifier, NewService(repo, notifier, subscriber, logger)
 }

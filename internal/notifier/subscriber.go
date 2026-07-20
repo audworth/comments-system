@@ -1,0 +1,124 @@
+package notifier
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log/slog"
+
+	"github.com/audworth/comments-system/internal/application/comment"
+	"github.com/audworth/comments-system/internal/domain"
+	"github.com/google/uuid"
+	goredis "github.com/redis/go-redis/v9"
+)
+
+var _ comment.Subscriber = (*Subscriber)(nil)
+
+type Subscriber struct {
+	client *goredis.Client
+	logger *slog.Logger
+}
+
+func NewSubscriber(client *goredis.Client, logger *slog.Logger) *Subscriber {
+	return &Subscriber{
+		client: client,
+		logger: logger,
+	}
+}
+
+func (s *Subscriber) SubscribeCommentCreated(ctx context.Context, postID uuid.UUID) (<-chan *domain.Comment, error) {
+	topic := commentCreatedTopicPrefix + postID.String()
+	ps := s.client.Subscribe(ctx, topic)
+	if _, err := ps.Receive(ctx); err != nil {
+		_ = ps.Close()
+
+		s.logger.ErrorContext(
+			ctx,
+			"could not establish subscription to redis",
+			slog.String("topic", topic),
+		)
+		return nil, fmt.Errorf("subscribe to topic %s: %w", topic, err)
+	}
+
+	out := make(chan *domain.Comment)
+	msgs := ps.Channel()
+
+	go s.forward(ctx, ps, msgs, out, postID)
+
+	return out, nil
+}
+
+func (s *Subscriber) forward(
+	ctx context.Context,
+	ps *goredis.PubSub,
+	msgs <-chan *goredis.Message,
+	comms chan<- *domain.Comment,
+	postID uuid.UUID,
+) {
+	defer func() {
+		close(comms)
+		if err := ps.Close(); err != nil {
+			s.logger.ErrorContext(
+				ctx,
+				"failed to close pubsub for post",
+				slog.String("post_id", postID.String()),
+				slog.Any("error", err),
+			)
+		}
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case msg, ok := <-msgs:
+			if !ok {
+				return
+			}
+
+			var e CommentCreatedEvent
+			if err := json.Unmarshal([]byte(msg.Payload), &e); err != nil {
+				s.logger.ErrorContext(
+					ctx,
+					"failed to decode event",
+					slog.String("topic", msg.Channel),
+					slog.Any("error", err),
+				)
+				continue
+			}
+			if e.PostID != postID {
+				s.logger.ErrorContext(
+					ctx,
+					"unexpected post_id",
+					slog.String("want", postID.String()),
+					slog.String("got", e.PostID.String()),
+				)
+				continue
+			}
+
+			comm, err := domain.NewComment(
+				e.ID,
+				e.PostID,
+				e.ParentID,
+				e.AuthorID,
+				e.Body,
+				e.CreatedAt,
+			)
+			if err != nil {
+				s.logger.ErrorContext(
+					ctx,
+					"invalid comment in pubsub",
+					slog.String("topic", msg.Channel),
+					slog.Any("error", err),
+				)
+				continue
+			}
+
+			select {
+			case <-ctx.Done():
+				return
+			case comms <- comm:
+			}
+		}
+	}
+}

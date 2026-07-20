@@ -117,10 +117,12 @@ func (s *Server) initServices(ctx context.Context, redis *goredis.Client, logger
 		postsRepo := pg.NewPostRepository(pool)
 		commentsRepo := pg.NewCommentsRepository(pool)
 		usersRepo := pg.NewUserRepository(pool)
-		notifier := notifier.New(redis, logger)
+
+		notif := notifier.NewNotifier(redis, logger)
+		sub := notifier.NewSubscriber(redis, logger)
 
 		s.posts = post.NewService(postsRepo)
-		s.comments = comment.NewService(commentsRepo, notifier, logger)
+		s.comments = comment.NewService(commentsRepo, notif, sub, logger)
 		s.users = user.NewService(usersRepo)
 
 		return func() {

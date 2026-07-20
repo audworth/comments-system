@@ -3,6 +3,7 @@ package graph
 import (
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -20,6 +21,9 @@ const (
 	queryCacheSize       = 1000
 	parserTokenLimit     = 10000
 	queryComplexityLimit = 5000
+
+	wsInitTimeout = 10 * time.Second
+	wsKeepAlive   = 10 * time.Second
 )
 
 type HandlerConfig struct {
@@ -37,14 +41,22 @@ func NewHandler(
 	configureQueryComplexity(&schemaConfig)
 
 	graphql := handler.New(generated.NewExecutableSchema(schemaConfig))
+
 	graphql.AddTransport(transport.Options{
 		AllowedMethods: []string{http.MethodOptions, http.MethodGet, http.MethodPost},
 	})
+	graphql.AddTransport(transport.Websocket{
+		InitTimeout:           wsInitTimeout,
+		KeepAlivePingInterval: wsKeepAlive,
+	})
 	graphql.AddTransport(transport.GET{UseGrapQLResponseJsonByDefault: true})
 	graphql.AddTransport(transport.POST{UseGrapQLResponseJsonByDefault: true})
+
 	graphql.SetQueryCache(lru.New[*ast.QueryDocument](queryCacheSize))
 	graphql.SetParserTokenLimit(parserTokenLimit)
+
 	graphql.Use(extension.FixedComplexityLimit(queryComplexityLimit))
+
 	graphql.SetErrorPresenter(grapherror.NewPresenter(logger).Present)
 	graphql.SetRecoverFunc(grapherror.NewRecoverFunc(logger))
 

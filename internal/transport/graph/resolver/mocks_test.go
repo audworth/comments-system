@@ -211,3 +211,18 @@ func (mr *MockCommentsServiceMockRecorder) Publish(ctx, params any) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockCommentsService)(nil).Publish), ctx, params)
 }
+
+// SubscribeToPostComments mocks base method.
+func (m *MockCommentsService) SubscribeToPostComments(ctx context.Context, postID uuid.UUID) (<-chan *domain.Comment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeToPostComments", ctx, postID)
+	ret0, _ := ret[0].(<-chan *domain.Comment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribeToPostComments indicates an expected call of SubscribeToPostComments.
+func (mr *MockCommentsServiceMockRecorder) SubscribeToPostComments(ctx, postID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeToPostComments", reflect.TypeOf((*MockCommentsService)(nil).SubscribeToPostComments), ctx, postID)
+}

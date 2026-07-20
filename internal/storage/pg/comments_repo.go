@@ -37,7 +37,7 @@ func (r *CommentsRepository) Publish(ctx context.Context, newComm *domain.Commen
 		select comments_enabled
 		from posts
 		where id = $1
-		for update
+		for share
 	`, newComm.PostID).Scan(&commentsEnabled)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

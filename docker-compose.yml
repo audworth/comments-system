@@ -41,6 +41,7 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       ENVIRONMENT: ${ENVIRONMENT:-local}
       STORAGE_TYPE: ${STORAGE_TYPE:-postgres}
+      REDIS_URL: redis://redis:6379
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
     depends_on:
       postgres:

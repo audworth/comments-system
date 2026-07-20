@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const notifyTimeout = 100 * time.Second
+const notifyTimeout = 200 * time.Millisecond
 
 type PublishParams struct {
 	PostID   uuid.UUID
@@ -38,7 +38,7 @@ type Page struct {
 	HasNextPage bool
 }
 
-//go:generate go tool mockgen -destination=mocks_test.go -package=comment . Repository,Notifier
+//go:generate go tool mockgen -destination=mocks_test.go -package=comment . Repository,Notifier,Subscriber
 type Repository interface {
 	Publish(ctx context.Context, comment *domain.Comment) (*domain.Comment, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error)
@@ -50,17 +50,23 @@ type Notifier interface {
 	NotifyCommentCreated(ctx context.Context, comment *domain.Comment) error
 }
 
-type Service struct {
-	logger   *slog.Logger
-	repo     Repository
-	notifier Notifier
+type Subscriber interface {
+	SubscribeCommentCreated(ctx context.Context, postID uuid.UUID) (<-chan *domain.Comment, error)
 }
 
-func NewService(repo Repository, notifier Notifier, logger *slog.Logger) *Service {
+type Service struct {
+	logger     *slog.Logger
+	repo       Repository
+	notifier   Notifier
+	subscriber Subscriber
+}
+
+func NewService(repo Repository, notif Notifier, sub Subscriber, logger *slog.Logger) *Service {
 	return &Service{
-		repo:     repo,
-		notifier: notifier,
-		logger:   logger,
+		repo:       repo,
+		notifier:   notif,
+		subscriber: sub,
+		logger:     logger,
 	}
 }
 
@@ -170,4 +176,13 @@ func (s *Service) ListBatch(ctx context.Context, params []ListParams) ([]*Page, 
 		slog.Int("amount of pages", len(pages)),
 	)
 	return pages, nil
+}
+
+func (s *Service) SubscribeToPostComments(ctx context.Context, postID uuid.UUID) (<-chan *domain.Comment, error) {
+	comms, err := s.subscriber.SubscribeCommentCreated(ctx, postID)
+	if err != nil {
+		return nil, fmt.Errorf("subscribe to comments for post %s: %w", postID.String(), err)
+	}
+
+	return comms, nil
 }
