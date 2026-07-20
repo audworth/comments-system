@@ -7,10 +7,10 @@ import (
 	"strings"
 )
 
-func New(configuredLevel string) (*slog.Logger, error) {
+func New(lvl string) (*slog.Logger, error) {
 	var level slog.Level
-	if err := level.UnmarshalText([]byte(strings.ToUpper(configuredLevel))); err != nil {
-		return nil, fmt.Errorf("parse log level %q: %w", configuredLevel, err)
+	if err := level.UnmarshalText([]byte(strings.ToUpper(lvl))); err != nil {
+		return nil, fmt.Errorf("parse log level %q: %w", lvl, err)
 	}
 
 	options := &slog.HandlerOptions{Level: level}

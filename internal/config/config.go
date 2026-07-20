@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 )
 
 const LocalEnv = "local"
@@ -16,12 +17,13 @@ const (
 )
 
 type Config struct {
-	Addr     string
-	LogLevel string
-	Env      string
-	Storage  StorageType
-	DB       string
-	RedisURL string
+	Addr      string
+	LogLevel  string
+	Env       string
+	Storage   StorageType
+	SeedInMem bool
+	DB        string
+	RedisURL  string
 }
 
 func FromEnv() (Config, error) {
@@ -50,6 +52,13 @@ func FromEnv() (Config, error) {
 	if storage := os.Getenv("STORAGE_TYPE"); storage != "" {
 		cfg.Storage = StorageType(storage)
 	}
+	if seed := os.Getenv("SEED_IN_MEM"); seed != "" {
+		enabled, err := strconv.ParseBool(seed)
+		if err != nil {
+			return Config{}, fmt.Errorf("SEED_INMEM: %w", err)
+		}
+		cfg.SeedInMem = enabled
+	}
 
 	switch cfg.Storage {
 	case StoragePostgres:
@@ -57,7 +66,6 @@ func FromEnv() (Config, error) {
 			return Config{}, errors.New("DATABASE_URL is required for postgres")
 		}
 	case StorageMemory:
-		panic("TODO")
 	default:
 		return Config{}, fmt.Errorf("unsupported STORAGE_TYPE %q", cfg.Storage)
 	}
