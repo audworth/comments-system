@@ -3,12 +3,15 @@ package comment
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/audworth/comments-system/internal/application"
 	"github.com/audworth/comments-system/internal/domain"
 	"github.com/google/uuid"
 )
+
+const notifyTimeout = 100 * time.Second
 
 type PublishParams struct {
 	PostID   uuid.UUID
@@ -44,18 +47,20 @@ type Repository interface {
 }
 
 type Notifier interface {
-	NotifyCreated(ctx context.Context, comment *domain.Comment) error
+	NotifyCommentCreated(ctx context.Context, comment *domain.Comment) error
 }
 
 type Service struct {
+	logger   *slog.Logger
 	repo     Repository
 	notifier Notifier
 }
 
-func NewService(repo Repository, notifier Notifier) *Service {
+func NewService(repo Repository, notifier Notifier, logger *slog.Logger) *Service {
 	return &Service{
 		repo:     repo,
 		notifier: notifier,
+		logger:   logger,
 	}
 }
 
@@ -77,9 +82,23 @@ func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Co
 		return nil, fmt.Errorf("publish comment: %w", err)
 	}
 
-	// TODO: handle error and log
-	_ = s.notifier.NotifyCreated(ctx, created)
+	ctx, cancel := context.WithTimeout(ctx, notifyTimeout)
+	defer cancel()
+	if err := s.notifier.NotifyCommentCreated(ctx, created); err != nil {
+		s.logger.ErrorContext(
+			ctx,
+			"failed to notify about new published comment",
+			slog.Any("error", err),
+		)
+	}
 
+	s.logger.InfoContext(
+		ctx,
+		"published new comment",
+		slog.String("author_id", created.AuthorID.String()),
+		slog.String("comment_id", created.ID.String()),
+		slog.String("post_id", created.PostID.String()),
+	)
 	return created, nil
 }
 
@@ -89,6 +108,13 @@ func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, e
 		return nil, fmt.Errorf("get comment %s: %w", id, err)
 	}
 
+	s.logger.InfoContext(
+		ctx,
+		"retrieved comment",
+		slog.String("author_id", comm.AuthorID.String()),
+		slog.String("comment_id", comm.ID.String()),
+		slog.String("post_id", comm.PostID.String()),
+	)
 	return comm, nil
 }
 
@@ -102,6 +128,11 @@ func (s *Service) List(ctx context.Context, params ListParams) (*Page, error) {
 		return nil, fmt.Errorf("list comments for post %s: %w", params.PostID, err)
 	}
 
+	s.logger.InfoContext(
+		ctx,
+		"retrieved page of comments",
+		slog.Int("amount of comments", len(page.Comments)),
+	)
 	return page, nil
 }
 
@@ -133,5 +164,10 @@ func (s *Service) ListBatch(ctx context.Context, params []ListParams) ([]*Page, 
 		)
 	}
 
+	s.logger.InfoContext(
+		ctx,
+		"retrieved batch of pages of comments",
+		slog.Int("amount of pages", len(pages)),
+	)
 	return pages, nil
 }

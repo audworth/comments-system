@@ -2,6 +2,7 @@ package comment
 
 import (
 	"errors"
+	"log/slog"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -18,6 +19,7 @@ func newTestService(t *testing.T) (*MockRepository, *MockNotifier, *Service) {
 	ctrl := gomock.NewController(t)
 	repo := NewMockRepository(ctrl)
 	notifier := NewMockNotifier(ctrl)
+	logger := slog.New(slog.DiscardHandler)
 
-	return repo, notifier, NewService(repo, notifier)
+	return repo, notifier, NewService(repo, notifier, logger)
 }

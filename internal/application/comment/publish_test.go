@@ -26,7 +26,7 @@ func TestService_Publish(t *testing.T) {
 			return repositoryResult, nil
 		},
 	)
-	notifier.EXPECT().NotifyCreated(gomock.Any(), repositoryResult).DoAndReturn(
+	notifier.EXPECT().NotifyCommentCreated(gomock.Any(), repositoryResult).DoAndReturn(
 		func(_ context.Context, comment *domain.Comment) error {
 			require.Same(t, repositoryResult, comment)
 			return nil
@@ -96,7 +96,7 @@ func TestService_Publish_IgnoresNotifierFail(t *testing.T) {
 			return comment, nil
 		},
 	)
-	notifier.EXPECT().NotifyCreated(gomock.Any(), gomock.Any()).Return(errNotifier)
+	notifier.EXPECT().NotifyCommentCreated(gomock.Any(), gomock.Any()).Return(errNotifier)
 
 	created, err := svc.Publish(t.Context(), PublishParams{
 		PostID:   uuid.New(),
@@ -118,7 +118,7 @@ func TestService_Publish_IsSavedBeforeNotifying(t *testing.T) {
 				return comment, nil
 			},
 		),
-		notifier.EXPECT().NotifyCreated(gomock.Any(), gomock.Any()).Return(nil),
+		notifier.EXPECT().NotifyCommentCreated(gomock.Any(), gomock.Any()).Return(nil),
 	)
 
 	_, err := service.Publish(t.Context(), PublishParams{

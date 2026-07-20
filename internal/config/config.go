@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 )
@@ -15,20 +16,26 @@ const (
 )
 
 type Config struct {
-	Addr        string
-	LogLevel    string
-	Env         string
-	Storage     StorageType
-	DatabaseURL string
+	Addr     string
+	LogLevel string
+	Env      string
+	Storage  StorageType
+	DB       string
+	RedisURL string
 }
 
 func FromEnv() (Config, error) {
 	cfg := Config{
-		Addr:        ":8080",
-		LogLevel:    "info",
-		Env:         LocalEnv,
-		Storage:     StoragePostgres,
-		DatabaseURL: os.Getenv("DATABASE_URL"),
+		Addr:     ":8080",
+		LogLevel: "info",
+		Env:      LocalEnv,
+		Storage:  StoragePostgres,
+		DB:       os.Getenv("DATABASE_URL"),
+		RedisURL: os.Getenv("REDIS_URL"),
+	}
+
+	if cfg.RedisURL == "" {
+		return Config{}, errors.New("REDIS_URL is required")
 	}
 
 	if addr := os.Getenv("HTTP_ADDRESS"); addr != "" {
@@ -46,8 +53,8 @@ func FromEnv() (Config, error) {
 
 	switch cfg.Storage {
 	case StoragePostgres:
-		if cfg.DatabaseURL == "" {
-			return Config{}, fmt.Errorf("DATABASE_URL is required for %s storage", StoragePostgres)
+		if cfg.DB == "" {
+			return Config{}, errors.New("DATABASE_URL is required for postgres")
 		}
 	case StorageMemory:
 		panic("TODO")

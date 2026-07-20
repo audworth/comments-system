@@ -12,11 +12,14 @@ import (
 	"github.com/audworth/comments-system/internal/application/post"
 	"github.com/audworth/comments-system/internal/application/user"
 	"github.com/audworth/comments-system/internal/config"
+	"github.com/audworth/comments-system/internal/notifier"
 	"github.com/audworth/comments-system/internal/platform/db"
 	"github.com/audworth/comments-system/internal/platform/logger"
+	"github.com/audworth/comments-system/internal/platform/redis"
 	"github.com/audworth/comments-system/internal/storage/pg"
 	"github.com/audworth/comments-system/internal/transport/graph"
 	"github.com/audworth/comments-system/internal/transport/graph/resolver"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 const (
@@ -44,11 +47,16 @@ func (s *Server) Run(ctx context.Context) error {
 		return fmt.Errorf("create logger: %w", err)
 	}
 
-	closeStorage, err := s.initServices(ctx)
+	redis, err := redis.NewClient(ctx, s.cfg.RedisURL)
+	if err != nil {
+		return fmt.Errorf("create redis: %w", err)
+	}
+
+	close, err := s.initServices(ctx, redis, lg)
 	if err != nil {
 		return err
 	}
-	defer closeStorage()
+	defer close()
 
 	root := resolver.New(s.posts, s.users, s.comments)
 	graphHandler := graph.NewHandler(
@@ -98,10 +106,10 @@ func (s *Server) Run(ctx context.Context) error {
 	}
 }
 
-func (s *Server) initServices(ctx context.Context) (func(), error) {
+func (s *Server) initServices(ctx context.Context, redis *goredis.Client, logger *slog.Logger) (func(), error) {
 	switch s.cfg.Storage {
 	case config.StoragePostgres:
-		pool, err := db.NewPostgres(ctx, db.Config{URL: s.cfg.DatabaseURL})
+		pool, err := db.NewPostgres(ctx, db.Config{URL: s.cfg.DB})
 		if err != nil {
 			return nil, fmt.Errorf("connect to postgres: %w", err)
 		}
@@ -109,16 +117,21 @@ func (s *Server) initServices(ctx context.Context) (func(), error) {
 		postsRepo := pg.NewPostRepository(pool)
 		commentsRepo := pg.NewCommentsRepository(pool)
 		usersRepo := pg.NewUserRepository(pool)
+		notifier := notifier.New(redis, logger)
 
 		s.posts = post.NewService(postsRepo)
-		// TODO: add notifier
-		s.comments = comment.NewService(commentsRepo, nil)
+		s.comments = comment.NewService(commentsRepo, notifier, logger)
 		s.users = user.NewService(usersRepo)
 
-		return pool.Close, nil
+		return func() {
+			_ = redis.Close()
+			pool.Close()
+		}, nil
 
 	case config.StorageMemory:
-		panic("TODO")
+		return func() {
+			_ = redis.Close()
+		}, nil
 
 	default:
 		return nil, fmt.Errorf("unsupported storage type %q", s.cfg.Storage)

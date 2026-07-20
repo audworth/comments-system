@@ -126,16 +126,16 @@ func (m *MockNotifier) EXPECT() *MockNotifierMockRecorder {
 	return m.recorder
 }
 
-// NotifyCreated mocks base method.
-func (m *MockNotifier) NotifyCreated(ctx context.Context, comment *domain.Comment) error {
+// NotifyCommentCreated mocks base method.
+func (m *MockNotifier) NotifyCommentCreated(ctx context.Context, comment *domain.Comment) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NotifyCreated", ctx, comment)
+	ret := m.ctrl.Call(m, "NotifyCommentCreated", ctx, comment)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// NotifyCreated indicates an expected call of NotifyCreated.
-func (mr *MockNotifierMockRecorder) NotifyCreated(ctx, comment any) *gomock.Call {
+// NotifyCommentCreated indicates an expected call of NotifyCommentCreated.
+func (mr *MockNotifierMockRecorder) NotifyCommentCreated(ctx, comment any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyCreated", reflect.TypeOf((*MockNotifier)(nil).NotifyCreated), ctx, comment)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyCommentCreated", reflect.TypeOf((*MockNotifier)(nil).NotifyCommentCreated), ctx, comment)
 }
