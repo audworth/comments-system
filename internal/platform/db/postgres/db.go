@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -44,6 +46,15 @@ func New(ctx context.Context, cfg Config) (*pgxpool.Pool, error) {
 	if cfg.HealthCheckPeriod > 0 {
 		poolCfg.HealthCheckPeriod =
 			cfg.HealthCheckPeriod
+	}
+
+	poolCfg.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
+		conn.TypeMap().RegisterType(&pgtype.Type{
+			Name:  "timestamptz",
+			OID:   pgtype.TimestamptzOID,
+			Codec: &pgtype.TimestamptzCodec{ScanLocation: time.UTC},
+		})
+		return nil
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
