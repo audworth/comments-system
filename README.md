@@ -24,15 +24,16 @@
 Доступные команды:
 
 ```bash
-task .
+task
 ```
 
 Запуск приложения:
 
 ```bash
 cp .env.example .env
-docker-compose up
+docker-compose up -d postgres redis
 task migrate
+docker-compose up -d app
 ```
 
 Для запуска тестов:
@@ -52,9 +53,9 @@ internal/application/                 бизнес-логика
 internal/platform/                    инициализация зависимостей (сервер, бд, редис и логгер)
 internal/storage/pg/                  PostgreSQL-реализация
 internal/storage/mem/                 in-memory реализация
-internal/transpotgraph/               схема и резолверы
+internal/transport/graph/             схема и резолверы
 internal/transport/graph/dataloader/  даталоадеры для запросов
-internal/subscription/                интерфейсы к Redis Pub/Sub
+internal/notifier/                    реализации подписок на уведомления (через Redis Pub/Sub)
 migrations/                           SQL миграции
 seeds/                                SQL скрипт для генерации тестовых данных
 docs/                                 документация проекта

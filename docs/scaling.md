@@ -11,11 +11,11 @@ Query и Mutation можно распределять обычным L7-бала
 Для большого трафика экземпляры сервиса масштабируются независимо от PostgreSQL и Redis:
 
 ```text
-clients
+клиенты
   -> lb/api gateway
-     -> service #1
-     -> service #2
-     -> service #N
+     -> сервис #1
+     -> сервис #2
+     -> сервис #N
 ```
 
 ## Шардирование PostgreSQL
@@ -39,7 +39,7 @@ shard = hash(post_id) % shard_count
 
 ## Шардирование Redis
 
-Ключ шардирования - `post-id`, так как топики итак разделены по постам (`comment.created.post.${postId}`
+Ключ шардирования - `post-id`, так как топики итак разделены по постам (`comment.created.post.${postId}`)
 
 ```text
 shard = hash(postId) % shard_count
