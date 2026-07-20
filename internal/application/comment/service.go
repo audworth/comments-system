@@ -91,8 +91,13 @@ func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Co
 	ctx, cancel := context.WithTimeout(ctx, notifyTimeout)
 	defer cancel()
 
-	// notifier самостоятельно логирует ошибки
-	_ = s.notifier.NotifyCommentCreated(ctx, created)
+	if err := s.notifier.NotifyCommentCreated(ctx, created); err != nil {
+		s.logger.ErrorContext(
+			ctx,
+			"failed to notify about new comment",
+			slog.String("comment", created.ID.String()),
+		)
+	}
 
 	s.logger.InfoContext(
 		ctx,

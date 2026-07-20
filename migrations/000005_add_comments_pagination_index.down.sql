@@ -1,1 +1,0 @@
-drop index concurrently if exists comments_post_parent_created_at_id_idx;
