@@ -83,10 +83,8 @@ func (s *Server) Run(ctx context.Context) error {
 		ctx,
 		"config",
 		slog.String("address", s.cfg.Addr),
-		slog.String("db url", s.cfg.DB),
 		slog.String("env", s.cfg.Env),
 		slog.String("log level", s.cfg.LogLevel),
-		slog.String("redis url", s.cfg.RedisURL),
 		slog.String("storage type", string(s.cfg.Storage)),
 	)
 	errCh := make(chan error, 1)
