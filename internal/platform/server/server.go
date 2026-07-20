@@ -13,9 +13,11 @@ import (
 	"github.com/audworth/comments-system/internal/application/user"
 	"github.com/audworth/comments-system/internal/config"
 	"github.com/audworth/comments-system/internal/notifier"
-	"github.com/audworth/comments-system/internal/platform/db"
+	"github.com/audworth/comments-system/internal/platform/db/inmem"
+	"github.com/audworth/comments-system/internal/platform/db/postgres"
 	"github.com/audworth/comments-system/internal/platform/logger"
 	"github.com/audworth/comments-system/internal/platform/redis"
+	"github.com/audworth/comments-system/internal/storage/mem"
 	"github.com/audworth/comments-system/internal/storage/pg"
 	"github.com/audworth/comments-system/internal/transport/graph"
 	"github.com/audworth/comments-system/internal/transport/graph/resolver"
@@ -76,7 +78,17 @@ func (s *Server) Run(ctx context.Context) error {
 		IdleTimeout:       idleTimeout,
 	}
 
-	lg.InfoContext(ctx, "HTTP server started", slog.String("address", server.Addr))
+	lg.InfoContext(ctx, "server started")
+	lg.InfoContext(
+		ctx,
+		"config",
+		slog.String("address", s.cfg.Addr),
+		slog.String("db url", s.cfg.DB),
+		slog.String("env", s.cfg.Env),
+		slog.String("log level", s.cfg.LogLevel),
+		slog.String("redis url", s.cfg.RedisURL),
+		slog.String("storage type", string(s.cfg.Storage)),
+	)
 	errCh := make(chan error, 1)
 	go func() {
 		errCh <- server.ListenAndServe()
@@ -107,9 +119,12 @@ func (s *Server) Run(ctx context.Context) error {
 }
 
 func (s *Server) initServices(ctx context.Context, redis *goredis.Client, logger *slog.Logger) (func(), error) {
+	notif := notifier.NewNotifier(redis, logger)
+	sub := notifier.NewSubscriber(redis, logger)
+
 	switch s.cfg.Storage {
 	case config.StoragePostgres:
-		pool, err := db.NewPostgres(ctx, db.Config{URL: s.cfg.DB})
+		pool, err := postgres.New(ctx, postgres.Config{URL: s.cfg.DB})
 		if err != nil {
 			return nil, fmt.Errorf("connect to postgres: %w", err)
 		}
@@ -118,12 +133,9 @@ func (s *Server) initServices(ctx context.Context, redis *goredis.Client, logger
 		commentsRepo := pg.NewCommentsRepository(pool, logger)
 		usersRepo := pg.NewUserRepository(pool, logger)
 
-		notif := notifier.NewNotifier(redis, logger)
-		sub := notifier.NewSubscriber(redis, logger)
-
-		s.posts = post.NewService(postsRepo)
+		s.posts = post.NewService(postsRepo, logger)
 		s.comments = comment.NewService(commentsRepo, notif, sub, logger)
-		s.users = user.NewService(usersRepo)
+		s.users = user.NewService(usersRepo, logger)
 
 		return func() {
 			_ = redis.Close()
@@ -131,6 +143,19 @@ func (s *Server) initServices(ctx context.Context, redis *goredis.Client, logger
 		}, nil
 
 	case config.StorageMemory:
+		inMem := inmem.New()
+		if s.cfg.SeedInMem {
+			inMem.Seed()
+		}
+
+		postsRepo := mem.NewPostRepository(inMem, logger)
+		commentsRepo := mem.NewCommentsRepository(inMem, logger)
+		usersRepo := mem.NewUserRepository(inMem, logger)
+
+		s.posts = post.NewService(postsRepo, logger)
+		s.comments = comment.NewService(commentsRepo, notif, sub, logger)
+		s.users = user.NewService(usersRepo, logger)
+
 		return func() {
 			_ = redis.Close()
 		}, nil
