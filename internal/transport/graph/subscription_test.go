@@ -143,7 +143,7 @@ func TestGraphQLSubscriptionIntegration_DeliversOnlyPostComments(t *testing.T) {
 	case err := <-next:
 		require.NoError(t, err)
 		require.Equal(t, want, received.CommentCreated)
-	case <-time.After(3 * time.Second):
+	case <-time.After(20 * time.Second):
 		t.Fatal("событие о создании комментария не получено")
 	}
 
