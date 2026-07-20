@@ -43,17 +43,19 @@ task test
 
 ## Структура проекта
 
+internal/application, internal/storage/pg, internal/storage/mem, internal/transport/graph.
+
 ```text
-cmd/server/                 точка входа
-internal/domain/            доменные модели и ошибки
-internal/service/           бизнес-логика
-internal/repository/        интерфейсы хранилищ
-internal/storage/postgres/  PostgreSQL-реализация
-internal/storage/memory/    in-memory реализация
-internal/graphql/           схема и резолверы
-internal/dataloader/        даталоадеры для запросов
-internal/subscription/      интерфейсы к Redis Pub/Sub
-migrations/                 SQL миграции
-seeds/                      SQL скрипт для генерации тестовых данных
-docs/                       документация проекта
+cmd/server/                           точка входа
+internal/domain/                      доменные модели и ошибки
+internal/application/                 бизнес-логика
+internal/platform/                    инициализация зависимостей (сервер, бд, редис и логгер)
+internal/storage/pg/                  PostgreSQL-реализация
+internal/storage/mem/                 in-memory реализация
+internal/transpotgraph/               схема и резолверы
+internal/transport/graph/dataloader/  даталоадеры для запросов
+internal/subscription/                интерфейсы к Redis Pub/Sub
+migrations/                           SQL миграции
+seeds/                                SQL скрипт для генерации тестовых данных
+docs/                                 документация проекта
 ```
