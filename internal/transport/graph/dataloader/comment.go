@@ -37,7 +37,12 @@ func newCommentPageLoader(
 
 			pages, err := comments.ListBatch(ctx, params)
 			if err != nil {
-				return nil, []error{err}
+				errs := make([]error, len(keys))
+				for i := range errs {
+					errs[i] = err
+				}
+
+				return make([]*comment.Page, len(keys)), errs
 			}
 
 			return pages, nil
