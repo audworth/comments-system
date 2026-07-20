@@ -10,7 +10,7 @@ permissions:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v6
@@ -47,8 +47,14 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9.3.0
 
-      - name: test
+      - name: unit-tests
         run: go test -race ./...
+
+      - name: integration tests
+        run: |
+          INTEGRATION_TESTS=true go test -race \
+            ./internal/storage/pg \
+            ./internal/transport/graph
 
       - name: build
         run: go build ./...
