@@ -60,7 +60,9 @@ func TestGraphQLSubscriptionIntegration_DeliversOnlyPostComments(t *testing.T) {
 	usersService := user.NewService(mem.NewUserRepository(db, logger), logger)
 	postsService := post.NewService(mem.NewPostRepository(db, logger), logger)
 	events := notifier.NewNotifier(redisClient, logger)
-	subscriber := notifier.NewSubscriber(redisClient, logger)
+	subscriber, err := notifier.NewSubscriber(ctx, redisClient, logger)
+	require.NoError(t, err)
+	t.Cleanup(subscriber.Close)
 	commentsService := comment.NewService(
 		mem.NewCommentsRepository(db, logger),
 		events,
@@ -82,6 +84,10 @@ func TestGraphQLSubscriptionIntegration_DeliversOnlyPostComments(t *testing.T) {
 		CommentsEnabled: true,
 	})
 	require.NoError(t, err)
+
+	redisSubscribers, err := redisClient.PubSubNumSub(ctx, "comment.created").Result()
+	require.NoError(t, err)
+	require.EqualValues(t, 1, redisSubscribers["comment.created"])
 
 	handler := graph.NewHandler(
 		resolver.New(postsService, usersService, commentsService),
@@ -156,6 +162,6 @@ func TestGraphQLSubscriptionIntegration_DeliversOnlyPostComments(t *testing.T) {
 	case _, open := <-comments:
 		require.False(t, open)
 	case <-time.After(3 * time.Second):
-		t.Fatal("Redis-подписка не закрылась после отмены контекста")
+		t.Fatal("локальная подписка не закрылась после отмены контекста")
 	}
 }

@@ -49,16 +49,19 @@ func (s *Server) Run(ctx context.Context) error {
 		return fmt.Errorf("create logger: %w", err)
 	}
 
-	redis, err := redis.NewClient(ctx, s.cfg.RedisURL)
+	redisClient, err := redis.NewClient(ctx, s.cfg.RedisURL)
 	if err != nil {
 		return fmt.Errorf("create redis: %w", err)
 	}
+	defer func() {
+		_ = redisClient.Close()
+	}()
 
-	close, err := s.initServices(ctx, redis, lg)
+	closeServices, err := s.initServices(ctx, redisClient, lg)
 	if err != nil {
 		return err
 	}
-	defer close()
+	defer closeServices()
 
 	root := resolver.New(s.posts, s.users, s.comments)
 	graphHandler := graph.NewHandler(
@@ -116,14 +119,18 @@ func (s *Server) Run(ctx context.Context) error {
 	}
 }
 
-func (s *Server) initServices(ctx context.Context, redis *goredis.Client, logger *slog.Logger) (func(), error) {
-	notif := notifier.NewNotifier(redis, logger)
-	sub := notifier.NewSubscriber(redis, logger)
+func (s *Server) initServices(ctx context.Context, redisClient *goredis.Client, logger *slog.Logger) (func(), error) {
+	notif := notifier.NewNotifier(redisClient, logger)
+	sub, err := notifier.NewSubscriber(ctx, redisClient, logger)
+	if err != nil {
+		return nil, fmt.Errorf("create comment subscriber: %w", err)
+	}
 
 	switch s.cfg.Storage {
 	case config.StoragePostgres:
 		pool, err := postgres.New(ctx, postgres.Config{URL: s.cfg.DB})
 		if err != nil {
+			sub.Close()
 			return nil, fmt.Errorf("connect to postgres: %w", err)
 		}
 
@@ -136,7 +143,7 @@ func (s *Server) initServices(ctx context.Context, redis *goredis.Client, logger
 		s.users = user.NewService(usersRepo, logger)
 
 		return func() {
-			_ = redis.Close()
+			sub.Close()
 			pool.Close()
 		}, nil
 
@@ -154,11 +161,10 @@ func (s *Server) initServices(ctx context.Context, redis *goredis.Client, logger
 		s.comments = comment.NewService(commentsRepo, notif, sub, logger)
 		s.users = user.NewService(usersRepo, logger)
 
-		return func() {
-			_ = redis.Close()
-		}, nil
+		return sub.Close, nil
 
 	default:
+		sub.Close()
 		return nil, fmt.Errorf("unsupported storage type %q", s.cfg.Storage)
 	}
 }

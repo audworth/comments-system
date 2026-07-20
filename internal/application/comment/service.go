@@ -96,7 +96,7 @@ func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Co
 		return nil, fmt.Errorf("publish comment: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, notifyTimeout)
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), notifyTimeout)
 	defer cancel()
 
 	if err := s.notifier.NotifyCommentCreated(ctx, created); err != nil {

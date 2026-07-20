@@ -27,9 +27,9 @@ func NewNotifier(client *goredis.Client, logger *slog.Logger) *Notifier {
 	}
 }
 
-const commentCreatedTopicPrefix = "comment.created.post."
+const commentCreatedTopic = "comment.created"
 
-type CommentCreatedEvent struct {
+type commentCreatedEvent struct {
 	ID        uuid.UUID  `json:"id"`
 	PostID    uuid.UUID  `json:"postId"`
 	ParentID  *uuid.UUID `json:"parentId,omitempty"`
@@ -39,16 +39,15 @@ type CommentCreatedEvent struct {
 }
 
 func (n *Notifier) NotifyCommentCreated(ctx context.Context, created *domain.Comment) error {
-	topic := commentCreatedTopicPrefix + created.PostID.String()
 	n.logger.DebugContext(
 		ctx,
 		"publish comment notification",
-		slog.String("topic", topic),
+		slog.String("topic", commentCreatedTopic),
 		slog.String("comment_id", created.ID.String()),
 		slog.String("post_id", created.PostID.String()),
 	)
 
-	e := &CommentCreatedEvent{
+	e := commentCreatedEvent{
 		ID:        created.ID,
 		PostID:    created.PostID,
 		ParentID:  created.ParentID,
@@ -69,11 +68,11 @@ func (n *Notifier) NotifyCommentCreated(ctx context.Context, created *domain.Com
 		return fmt.Errorf("marshal created comment event: %w", err)
 	}
 
-	if err := n.client.Publish(ctx, topic, jsoned).Err(); err != nil {
+	if err := n.client.Publish(ctx, commentCreatedTopic, jsoned).Err(); err != nil {
 		n.logger.ErrorContext(
 			ctx,
 			"failed to publish comment notification",
-			slog.String("topic", topic),
+			slog.String("topic", commentCreatedTopic),
 			slog.String("comment_id", created.ID.String()),
 			slog.String("post_id", created.PostID.String()),
 			slog.Any("error", err),
@@ -83,7 +82,7 @@ func (n *Notifier) NotifyCommentCreated(ctx context.Context, created *domain.Com
 	n.logger.DebugContext(
 		ctx,
 		"comment notification published",
-		slog.String("topic", topic),
+		slog.String("topic", commentCreatedTopic),
 		slog.String("comment_id", created.ID.String()),
 		slog.String("post_id", created.PostID.String()),
 	)
