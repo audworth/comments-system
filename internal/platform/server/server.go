@@ -114,9 +114,9 @@ func (s *Server) initServices(ctx context.Context, redis *goredis.Client, logger
 			return nil, fmt.Errorf("connect to postgres: %w", err)
 		}
 
-		postsRepo := pg.NewPostRepository(pool)
-		commentsRepo := pg.NewCommentsRepository(pool)
-		usersRepo := pg.NewUserRepository(pool)
+		postsRepo := pg.NewPostRepository(pool, logger)
+		commentsRepo := pg.NewCommentsRepository(pool, logger)
+		usersRepo := pg.NewUserRepository(pool, logger)
 
 		notif := notifier.NewNotifier(redis, logger)
 		sub := notifier.NewSubscriber(redis, logger)

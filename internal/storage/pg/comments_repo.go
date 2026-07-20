@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/audworth/comments-system/internal/application/comment"
 	"github.com/audworth/comments-system/internal/application/user"
@@ -16,16 +17,23 @@ import (
 var _ comment.Repository = (*CommentsRepository)(nil)
 
 type CommentsRepository struct {
-	db *pgxpool.Pool
+	db     *pgxpool.Pool
+	logger *slog.Logger
 }
 
-func NewCommentsRepository(db *pgxpool.Pool) *CommentsRepository {
-	return &CommentsRepository{db: db}
+func NewCommentsRepository(db *pgxpool.Pool, logger *slog.Logger) *CommentsRepository {
+	return &CommentsRepository{db: db, logger: logger}
 }
 
 func (r *CommentsRepository) Publish(ctx context.Context, newComm *domain.Comment) (*domain.Comment, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
+		r.logger.ErrorContext(
+			ctx,
+			"failed to begin transaction for new comment",
+			slog.String("post_id", newComm.PostID.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("publish comment transaction: %w", err)
 	}
 	defer func() {
@@ -43,6 +51,12 @@ func (r *CommentsRepository) Publish(ctx context.Context, newComm *domain.Commen
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, comment.ErrPostNotFound
 		}
+		r.logger.ErrorContext(
+			ctx,
+			"failed to lock post for comment",
+			slog.String("post_id", newComm.PostID.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("lock post %s: %w", newComm.PostID, err)
 	}
 	if !commentsEnabled {
@@ -60,6 +74,13 @@ func (r *CommentsRepository) Publish(ctx context.Context, newComm *domain.Commen
 			if errors.Is(err, pgx.ErrNoRows) {
 				return nil, comment.ErrParentNotFound
 			}
+			r.logger.ErrorContext(
+				ctx,
+				"failed to check parent comment",
+				slog.String("post_id", newComm.PostID.String()),
+				slog.String("parent_id", newComm.ParentID.String()),
+				slog.Any("error", err),
+			)
 			return nil, fmt.Errorf("check parent comment %s: %w", *newComm.ParentID, err)
 		}
 	}
@@ -103,10 +124,23 @@ func (r *CommentsRepository) Publish(ctx context.Context, newComm *domain.Commen
 		if isForeignKeyViolation(err, commentsAuthorConstraint) {
 			return nil, user.ErrNotFound
 		}
+		r.logger.ErrorContext(
+			ctx,
+			"failed to create comment",
+			slog.String("comment_id", newComm.ID.String()),
+			slog.String("post_id", newComm.PostID.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("publish comment: %w", err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
+		r.logger.ErrorContext(
+			ctx,
+			"failed to commit transaction",
+			slog.String("comment_id", comm.ID.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("commit comment %s: %w", comm.ID, err)
 	}
 
@@ -139,6 +173,12 @@ func (r *CommentsRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, comment.ErrNotFound
 		}
+		r.logger.ErrorContext(
+			ctx,
+			"failed to get commen",
+			slog.String("comment_id", id.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("get comment %s: %w", id, err)
 	}
 
@@ -149,11 +189,23 @@ func (r *CommentsRepository) List(ctx context.Context, params comment.ListParams
 	query, args := makeListQuery(&params)
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
+		r.logger.ErrorContext(
+			ctx,
+			"failed to list comments",
+			slog.String("post_id", params.PostID.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("list children for post %s: %w", params.PostID, err)
 	}
 
 	page, err := pageFromRows(rows, params.Limit)
 	if err != nil {
+		r.logger.ErrorContext(
+			ctx,
+			"failed to read comment page",
+			slog.String("post_id", params.PostID.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("list children for post %s: %w", params.PostID, err)
 	}
 
@@ -177,18 +229,31 @@ func (r *CommentsRepository) ListBatch(ctx context.Context, params []comment.Lis
 		rows, err := results.Query()
 		if err != nil {
 			_ = results.Close()
+			r.logger.ErrorContext(
+				ctx,
+				"failed to read comment batch",
+				slog.Int("batch_index", i),
+				slog.Any("error", err),
+			)
 			return nil, fmt.Errorf("list children batch item %d: %w", i, err)
 		}
 
 		page, err := pageFromRows(rows, params[i].Limit)
 		if err != nil {
 			_ = results.Close()
+			r.logger.ErrorContext(
+				ctx,
+				"failed to read comment batch page",
+				slog.Int("batch_index", i),
+				slog.Any("error", err),
+			)
 			return nil, fmt.Errorf("list children batch item %d: %w", i, err)
 		}
 		pages[i] = page
 	}
 
 	if err := results.Close(); err != nil {
+		r.logger.ErrorContext(ctx, "failed to close comment batch", slog.Any("error", err))
 		return nil, fmt.Errorf("close children batch: %w", err)
 	}
 

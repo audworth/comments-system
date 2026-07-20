@@ -50,6 +50,13 @@ func (n *Notifier) NotifyCommentCreated(ctx context.Context, created *domain.Com
 
 	jsoned, err := json.Marshal(e)
 	if err != nil {
+		n.logger.ErrorContext(
+			ctx,
+			"failed to marshal comment notification",
+			slog.String("comment_id", created.ID.String()),
+			slog.String("post_id", created.PostID.String()),
+			slog.Any("error", err),
+		)
 		return fmt.Errorf("marshal created comment event: %w", err)
 	}
 
@@ -57,7 +64,8 @@ func (n *Notifier) NotifyCommentCreated(ctx context.Context, created *domain.Com
 	if err := n.client.Publish(ctx, topic, jsoned).Err(); err != nil {
 		n.logger.ErrorContext(
 			ctx,
-			"failed to notify about new comment",
+			"failed to publish comment notification to Redis",
+			slog.String("topic", topic),
 			slog.String("comment_id", created.ID.String()),
 			slog.String("post_id", created.PostID.String()),
 			slog.Any("error", err),
@@ -65,11 +73,5 @@ func (n *Notifier) NotifyCommentCreated(ctx context.Context, created *domain.Com
 		return fmt.Errorf("notify comment created: %w", err)
 	}
 
-	n.logger.InfoContext(
-		ctx,
-		"published notification about new comment",
-		slog.String("comment_id", created.ID.String()),
-		slog.String("post_id", created.PostID.String()),
-	)
 	return nil
 }

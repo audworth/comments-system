@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/audworth/comments-system/internal/application/post"
 	"github.com/audworth/comments-system/internal/application/user"
@@ -16,11 +17,12 @@ import (
 var _ post.Repository = (*PostRepository)(nil)
 
 type PostRepository struct {
-	db *pgxpool.Pool
+	db     *pgxpool.Pool
+	logger *slog.Logger
 }
 
-func NewPostRepository(db *pgxpool.Pool) *PostRepository {
-	return &PostRepository{db: db}
+func NewPostRepository(db *pgxpool.Pool, logger *slog.Logger) *PostRepository {
+	return &PostRepository{db: db, logger: logger}
 }
 
 func (r *PostRepository) Publish(ctx context.Context, post *domain.Post) (*domain.Post, error) {
@@ -67,6 +69,12 @@ func (r *PostRepository) Publish(ctx context.Context, post *domain.Post) (*domai
 		if isForeignKeyViolation(err, postsAuthorConstraint) {
 			return nil, user.ErrNotFound
 		}
+		r.logger.ErrorContext(
+			ctx,
+			"failed to create post",
+			slog.String("post_id", post.ID.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("publish post: %w", err)
 	}
 
@@ -101,6 +109,12 @@ func (r *PostRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Pos
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, post.ErrNotFound
 		}
+		r.logger.ErrorContext(
+			ctx,
+			"failed to get post",
+			slog.String("post_id", id.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("get post %s: %w", id, err)
 	}
 
@@ -139,6 +153,7 @@ func (r *PostRepository) List(ctx context.Context, params post.ListParams) (*pos
 
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
+		r.logger.ErrorContext(ctx, "failed to list posts", slog.Any("error", err))
 		return nil, fmt.Errorf("list posts: %w", err)
 	}
 	defer rows.Close()
@@ -193,6 +208,12 @@ func (r *PostRepository) SetCommentsEnabled(
 ) (*domain.Post, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
+		r.logger.ErrorContext(
+			ctx,
+			"failed to begin comments setting transaction",
+			slog.String("post_id", postID.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("set comments enabled transaction: %w", err)
 	}
 	defer func() {
@@ -210,6 +231,12 @@ func (r *PostRepository) SetCommentsEnabled(
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, post.ErrNotFound
 		}
+		r.logger.ErrorContext(
+			ctx,
+			"failed to lock post",
+			slog.String("post_id", postID.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("lock post %s: %w", postID, err)
 	}
 
@@ -243,10 +270,22 @@ func (r *PostRepository) SetCommentsEnabled(
 		&result.CreatedAt,
 		&result.UpdatedAt,
 	); err != nil {
+		r.logger.ErrorContext(
+			ctx,
+			"failed to update post comments setting",
+			slog.String("post_id", postID.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("update post %s: %w", postID, err)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
+		r.logger.ErrorContext(
+			ctx,
+			"failed to commit comments setting transaction",
+			slog.String("post_id", postID.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("commit set comments for post %s: %w", postID, err)
 	}
 

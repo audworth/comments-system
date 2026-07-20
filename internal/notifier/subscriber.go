@@ -31,11 +31,11 @@ func (s *Subscriber) SubscribeCommentCreated(ctx context.Context, postID uuid.UU
 	ps := s.client.Subscribe(ctx, topic)
 	if _, err := ps.Receive(ctx); err != nil {
 		_ = ps.Close()
-
 		s.logger.ErrorContext(
 			ctx,
 			"could not establish subscription to redis",
 			slog.String("topic", topic),
+			slog.Any("error", err),
 		)
 		return nil, fmt.Errorf("subscribe to topic %s: %w", topic, err)
 	}
@@ -58,7 +58,7 @@ func (s *Subscriber) forward(
 	defer func() {
 		close(comms)
 		if err := ps.Close(); err != nil {
-			s.logger.ErrorContext(
+			s.logger.WarnContext(
 				ctx,
 				"failed to close pubsub for post",
 				slog.String("post_id", postID.String()),
@@ -87,7 +87,7 @@ func (s *Subscriber) forward(
 				continue
 			}
 			if e.PostID != postID {
-				s.logger.ErrorContext(
+				s.logger.WarnContext(
 					ctx,
 					"unexpected post_id",
 					slog.String("want", postID.String()),

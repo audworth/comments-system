@@ -90,13 +90,9 @@ func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Co
 
 	ctx, cancel := context.WithTimeout(ctx, notifyTimeout)
 	defer cancel()
-	if err := s.notifier.NotifyCommentCreated(ctx, created); err != nil {
-		s.logger.ErrorContext(
-			ctx,
-			"failed to notify about new published comment",
-			slog.Any("error", err),
-		)
-	}
+	// Notification delivery is best effort. The notifier records technical
+	// failures where they occur; the comment itself is already committed.
+	_ = s.notifier.NotifyCommentCreated(ctx, created)
 
 	s.logger.InfoContext(
 		ctx,
@@ -114,13 +110,6 @@ func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, e
 		return nil, fmt.Errorf("get comment %s: %w", id, err)
 	}
 
-	s.logger.InfoContext(
-		ctx,
-		"retrieved comment",
-		slog.String("author_id", comm.AuthorID.String()),
-		slog.String("comment_id", comm.ID.String()),
-		slog.String("post_id", comm.PostID.String()),
-	)
 	return comm, nil
 }
 
@@ -134,11 +123,6 @@ func (s *Service) List(ctx context.Context, params ListParams) (*Page, error) {
 		return nil, fmt.Errorf("list comments for post %s: %w", params.PostID, err)
 	}
 
-	s.logger.InfoContext(
-		ctx,
-		"retrieved page of comments",
-		slog.Int("amount of comments", len(page.Comments)),
-	)
 	return page, nil
 }
 
@@ -163,6 +147,12 @@ func (s *Service) ListBatch(ctx context.Context, params []ListParams) ([]*Page, 
 	}
 
 	if len(pages) != len(params) {
+		s.logger.ErrorContext(
+			ctx,
+			"comment repository returned unexpected page count",
+			slog.Int("requested_page_count", len(params)),
+			slog.Int("returned_page_count", len(pages)),
+		)
 		return nil, fmt.Errorf(
 			"list comment pages: returned %d pages for %d requests",
 			len(pages),
@@ -170,11 +160,6 @@ func (s *Service) ListBatch(ctx context.Context, params []ListParams) ([]*Page, 
 		)
 	}
 
-	s.logger.InfoContext(
-		ctx,
-		"retrieved batch of pages of comments",
-		slog.Int("amount of pages", len(pages)),
-	)
 	return pages, nil
 }
 

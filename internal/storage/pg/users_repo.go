@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/audworth/comments-system/internal/application/user"
 	"github.com/audworth/comments-system/internal/domain"
@@ -15,11 +16,12 @@ import (
 var _ user.Repository = (*UserRepository)(nil)
 
 type UserRepository struct {
-	db *pgxpool.Pool
+	db     *pgxpool.Pool
+	logger *slog.Logger
 }
 
-func NewUserRepository(db *pgxpool.Pool) *UserRepository {
-	return &UserRepository{db: db}
+func NewUserRepository(db *pgxpool.Pool, logger *slog.Logger) *UserRepository {
+	return &UserRepository{db: db, logger: logger}
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
@@ -39,6 +41,12 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Use
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, user.ErrNotFound
 		}
+		r.logger.ErrorContext(
+			ctx,
+			"failed to get user",
+			slog.String("user_id", id.String()),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("get user %s: %w", id, err)
 	}
 
@@ -57,6 +65,12 @@ func (r *UserRepository) GetByIDs(ctx context.Context, ids []uuid.UUID) (map[uui
 		where id = any($1)
 	`, ids)
 	if err != nil {
+		r.logger.ErrorContext(
+			ctx,
+			"failed to get users",
+			slog.Int("user_count", len(ids)),
+			slog.Any("error", err),
+		)
 		return nil, fmt.Errorf("get users by ids: %w", err)
 	}
 	defer rows.Close()
@@ -75,6 +89,7 @@ func (r *UserRepository) GetByIDs(ctx context.Context, ids []uuid.UUID) (map[uui
 		users[u.ID] = u
 	}
 	if err := rows.Err(); err != nil {
+		r.logger.ErrorContext(ctx, "failed while iterating user rows", slog.Any("error", err))
 		return nil, fmt.Errorf("get users by ids: %w", err)
 	}
 

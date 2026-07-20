@@ -146,6 +146,15 @@ func (p *Presenter) Present(ctx context.Context, err error) *gqlerror.Error {
 		)
 	}
 
+	if errors.Is(err, ErrRecovered) {
+		return apiError(
+			presentedErr,
+			CodeInternal,
+			"internal server error",
+			"",
+		)
+	}
+
 	if gqlErr, ok := errors.AsType[*gqlerror.Error](err); ok && gqlErr.Err == nil {
 		return presentedErr
 	}
