@@ -36,6 +36,15 @@ tasks:
         -race
         {{.GO_PACKAGES}}
 
+  test-integration:
+    desc: запустить интеграционные тесты PostgreSQL
+    cmds:
+      - >-
+        INTEGRATION_TESTS=true
+        go test
+        -race
+        ./internal/storage/pg
+
   migrate:
     desc: применить все миграции
     cmds:

@@ -7,8 +7,7 @@ const (
 	CodeInvalidCursor   ErrorCode = "INVALID_CURSOR"
 	CodeInvalidPageSize ErrorCode = "INVALID_PAGE_SIZE"
 
-	CodeUnauthenticated ErrorCode = "UNAUTHENTICATED"
-	CodeForbidden       ErrorCode = "FORBIDDEN"
+	CodeForbidden ErrorCode = "FORBIDDEN"
 
 	CodePostNotFound     ErrorCode = "POST_NOT_FOUND"
 	CodeUserNotFound     ErrorCode = "USER_NOT_FOUND"
