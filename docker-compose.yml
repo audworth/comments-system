@@ -10,7 +10,7 @@ services:
     networks:
       - comments-net
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -45,6 +45,8 @@ services:
       REDIS_URL: redis://redis:6379
       DATABASE_URL: postgres://${POSTGRES_USER:-comments}:${POSTGRES_PASSWORD:-comments}@postgres:5432/${POSTGRES_DB:-comments}?sslmode=disable
     depends_on:
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_healthy
     networks:
