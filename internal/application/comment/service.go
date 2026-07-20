@@ -90,8 +90,8 @@ func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Co
 
 	ctx, cancel := context.WithTimeout(ctx, notifyTimeout)
 	defer cancel()
-	// Notification delivery is best effort. The notifier records technical
-	// failures where they occur; the comment itself is already committed.
+
+	// notifier самостоятельно логирует ошибки
 	_ = s.notifier.NotifyCommentCreated(ctx, created)
 
 	s.logger.InfoContext(
