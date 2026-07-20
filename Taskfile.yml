@@ -37,13 +37,14 @@ tasks:
         {{.GO_PACKAGES}}
 
   test-integration:
-    desc: запустить интеграционные тесты PostgreSQL
+    desc: запустить интеграционные тесты PostgreSQL и GraphQL Subscriptions
     cmds:
       - >-
         INTEGRATION_TESTS=true
         go test
         -race
         ./internal/storage/pg
+        ./internal/transport/graph
 
   migrate:
     desc: применить все миграции
