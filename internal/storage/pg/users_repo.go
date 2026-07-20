@@ -21,10 +21,15 @@ type UserRepository struct {
 }
 
 func NewUserRepository(db *pgxpool.Pool, logger *slog.Logger) *UserRepository {
-	return &UserRepository{db: db, logger: logger}
+	return &UserRepository{
+		db:     db,
+		logger: logger,
+	}
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
+	r.logger.DebugContext(ctx, "get user", slog.String("user_id", id.String()))
+
 	row := r.db.QueryRow(ctx, `
 		select id, name
 		from users
@@ -54,6 +59,8 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Use
 }
 
 func (r *UserRepository) GetByIDs(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]*domain.User, error) {
+	r.logger.DebugContext(ctx, "get users", slog.Int("user_count", len(ids)))
+
 	users := make(map[uuid.UUID]*domain.User, len(ids))
 	if len(ids) == 0 {
 		return users, nil

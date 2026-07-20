@@ -5,6 +5,7 @@ package post
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/audworth/comments-system/internal/application"
@@ -48,16 +49,25 @@ type Repository interface {
 }
 
 type Service struct {
-	repo Repository
+	logger *slog.Logger
+	repo   Repository
 }
 
-func NewService(repo Repository) *Service {
+func NewService(repo Repository, logger *slog.Logger) *Service {
 	return &Service{
-		repo: repo,
+		repo:   repo,
+		logger: logger,
 	}
 }
 
 func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Post, error) {
+	s.logger.DebugContext(
+		ctx,
+		"publish post",
+		slog.String("author_id", params.AuthorID.String()),
+		slog.Bool("comments_enabled", params.CommentsEnabled),
+	)
+
 	p, err := domain.NewPost(
 		uuid.New(),
 		params.AuthorID,
@@ -79,6 +89,8 @@ func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Po
 }
 
 func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (*domain.Post, error) {
+	s.logger.DebugContext(ctx, "get post", slog.String("post_id", id.String()))
+
 	p, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("get post %s: %w", id, err)
@@ -88,6 +100,13 @@ func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (*domain.Post, erro
 }
 
 func (s *Service) List(ctx context.Context, params ListParams) (*Page, error) {
+	s.logger.DebugContext(
+		ctx,
+		"list posts",
+		slog.Int("limit", params.Limit),
+		slog.Bool("has_after", params.After != nil),
+	)
+
 	if params.Limit < 1 || params.Limit > 100 {
 		return nil, application.ErrInvalidPageSize
 	}
@@ -106,6 +125,14 @@ func (s *Service) SetCommentsEnabled(
 	authorID uuid.UUID,
 	enabled bool,
 ) (*domain.Post, error) {
+	s.logger.DebugContext(
+		ctx,
+		"set post comments enabled",
+		slog.String("post_id", postID.String()),
+		slog.String("author_id", authorID.String()),
+		slog.Bool("enabled", enabled),
+	)
+
 	p, err := s.repo.SetCommentsEnabled(ctx, postID, authorID, enabled)
 	if err != nil {
 		return nil, fmt.Errorf(

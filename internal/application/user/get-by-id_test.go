@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"log/slog"
 	"testing"
 
 	"github.com/google/uuid"
@@ -15,7 +16,7 @@ func newTestService(t *testing.T) (*MockRepository, *Service) {
 	t.Helper()
 
 	repo := NewMockRepository(gomock.NewController(t))
-	return repo, NewService(repo)
+	return repo, NewService(repo, slog.New(slog.DiscardHandler))
 }
 
 func TestService_GetByID_RepositoryFail(t *testing.T) {

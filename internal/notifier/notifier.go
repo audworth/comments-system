@@ -39,6 +39,15 @@ type CommentCreatedEvent struct {
 }
 
 func (n *Notifier) NotifyCommentCreated(ctx context.Context, created *domain.Comment) error {
+	topic := commentCreatedTopicPrefix + created.PostID.String()
+	n.logger.DebugContext(
+		ctx,
+		"publish comment notification",
+		slog.String("topic", topic),
+		slog.String("comment_id", created.ID.String()),
+		slog.String("post_id", created.PostID.String()),
+	)
+
 	e := &CommentCreatedEvent{
 		ID:        created.ID,
 		PostID:    created.PostID,
@@ -60,7 +69,6 @@ func (n *Notifier) NotifyCommentCreated(ctx context.Context, created *domain.Com
 		return fmt.Errorf("marshal created comment event: %w", err)
 	}
 
-	topic := commentCreatedTopicPrefix + created.PostID.String()
 	if err := n.client.Publish(ctx, topic, jsoned).Err(); err != nil {
 		n.logger.ErrorContext(
 			ctx,
@@ -72,6 +80,13 @@ func (n *Notifier) NotifyCommentCreated(ctx context.Context, created *domain.Com
 		)
 		return fmt.Errorf("notify comment created: %w", err)
 	}
+	n.logger.DebugContext(
+		ctx,
+		"comment notification published",
+		slog.String("topic", topic),
+		slog.String("comment_id", created.ID.String()),
+		slog.String("post_id", created.PostID.String()),
+	)
 
 	return nil
 }

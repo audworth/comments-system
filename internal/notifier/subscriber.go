@@ -28,6 +28,13 @@ func NewSubscriber(client *goredis.Client, logger *slog.Logger) *Subscriber {
 
 func (s *Subscriber) SubscribeCommentCreated(ctx context.Context, postID uuid.UUID) (<-chan *domain.Comment, error) {
 	topic := commentCreatedTopicPrefix + postID.String()
+	s.logger.DebugContext(
+		ctx,
+		"subscribe to comment notifications",
+		slog.String("topic", topic),
+		slog.String("post_id", postID.String()),
+	)
+
 	ps := s.client.Subscribe(ctx, topic)
 	if _, err := ps.Receive(ctx); err != nil {
 		_ = ps.Close()
@@ -39,6 +46,12 @@ func (s *Subscriber) SubscribeCommentCreated(ctx context.Context, postID uuid.UU
 		)
 		return nil, fmt.Errorf("subscribe to topic %s: %w", topic, err)
 	}
+	s.logger.DebugContext(
+		ctx,
+		"comment notification subscription opened",
+		slog.String("topic", topic),
+		slog.String("post_id", postID.String()),
+	)
 
 	out := make(chan *domain.Comment)
 	msgs := ps.Channel()
@@ -55,6 +68,7 @@ func (s *Subscriber) forward(
 	comms chan<- *domain.Comment,
 	postID uuid.UUID,
 ) {
+	closeReason := "source_closed"
 	defer func() {
 		close(comms)
 		if err := ps.Close(); err != nil {
@@ -65,11 +79,18 @@ func (s *Subscriber) forward(
 				slog.Any("error", err),
 			)
 		}
+		s.logger.DebugContext(
+			ctx,
+			"comment notification subscription closed",
+			slog.String("post_id", postID.String()),
+			slog.String("reason", closeReason),
+		)
 	}()
 
 	for {
 		select {
 		case <-ctx.Done():
+			closeReason = "context_done"
 			return
 		case msg, ok := <-msgs:
 			if !ok {
@@ -95,6 +116,13 @@ func (s *Subscriber) forward(
 				)
 				continue
 			}
+			s.logger.DebugContext(
+				ctx,
+				"comment notification received",
+				slog.String("topic", msg.Channel),
+				slog.String("comment_id", e.ID.String()),
+				slog.String("post_id", e.PostID.String()),
+			)
 
 			comm, err := domain.NewComment(
 				e.ID,
@@ -116,8 +144,15 @@ func (s *Subscriber) forward(
 
 			select {
 			case <-ctx.Done():
+				closeReason = "context_done"
 				return
 			case comms <- comm:
+				s.logger.DebugContext(
+					ctx,
+					"comment notification forwarded",
+					slog.String("comment_id", comm.ID.String()),
+					slog.String("post_id", comm.PostID.String()),
+				)
 			}
 		}
 	}

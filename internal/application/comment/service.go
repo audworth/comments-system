@@ -71,6 +71,14 @@ func NewService(repo Repository, notif Notifier, sub Subscriber, logger *slog.Lo
 }
 
 func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Comment, error) {
+	s.logger.DebugContext(
+		ctx,
+		"publish comment",
+		slog.String("post_id", params.PostID.String()),
+		slog.String("author_id", params.AuthorID.String()),
+		slog.Bool("has_parent", params.ParentID != nil),
+	)
+
 	comm, err := domain.NewComment(
 		uuid.New(),
 		params.PostID,
@@ -110,6 +118,8 @@ func (s *Service) Publish(ctx context.Context, params PublishParams) (*domain.Co
 }
 
 func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error) {
+	s.logger.DebugContext(ctx, "get comment", slog.String("comment_id", id.String()))
+
 	comm, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("get comment %s: %w", id, err)
@@ -119,6 +129,15 @@ func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, e
 }
 
 func (s *Service) List(ctx context.Context, params ListParams) (*Page, error) {
+	s.logger.DebugContext(
+		ctx,
+		"list comments",
+		slog.String("post_id", params.PostID.String()),
+		slog.Bool("has_parent", params.ParentID != nil),
+		slog.Int("limit", params.Limit),
+		slog.Bool("has_after", params.After != nil),
+	)
+
 	if params.Limit < 1 || params.Limit > 100 {
 		return nil, application.ErrInvalidPageSize
 	}
@@ -132,6 +151,8 @@ func (s *Service) List(ctx context.Context, params ListParams) (*Page, error) {
 }
 
 func (s *Service) ListBatch(ctx context.Context, params []ListParams) ([]*Page, error) {
+	s.logger.DebugContext(ctx, "list comment pages", slog.Int("batch_size", len(params)))
+
 	if len(params) == 0 {
 		return []*Page{}, nil
 	}
@@ -169,6 +190,8 @@ func (s *Service) ListBatch(ctx context.Context, params []ListParams) ([]*Page, 
 }
 
 func (s *Service) SubscribeToPostComments(ctx context.Context, postID uuid.UUID) (<-chan *domain.Comment, error) {
+	s.logger.DebugContext(ctx, "subscribe to post comments", slog.String("post_id", postID.String()))
+
 	comms, err := s.subscriber.SubscribeCommentCreated(ctx, postID)
 	if err != nil {
 		return nil, fmt.Errorf("subscribe to comments for post %s: %w", postID.String(), err)

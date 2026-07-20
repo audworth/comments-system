@@ -22,10 +22,20 @@ type PostRepository struct {
 }
 
 func NewPostRepository(db *pgxpool.Pool, logger *slog.Logger) *PostRepository {
-	return &PostRepository{db: db, logger: logger}
+	return &PostRepository{
+		db:     db,
+		logger: logger,
+	}
 }
 
 func (r *PostRepository) Publish(ctx context.Context, post *domain.Post) (*domain.Post, error) {
+	r.logger.DebugContext(
+		ctx,
+		"publish post",
+		slog.String("post_id", post.ID.String()),
+		slog.String("author_id", post.AuthorID.String()),
+	)
+
 	row := r.db.QueryRow(ctx, `
 		insert into posts (
 			id,
@@ -82,6 +92,8 @@ func (r *PostRepository) Publish(ctx context.Context, post *domain.Post) (*domai
 }
 
 func (r *PostRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Post, error) {
+	r.logger.DebugContext(ctx, "get post", slog.String("post_id", id.String()))
+
 	row := r.db.QueryRow(ctx, `
 		select
 			id,
@@ -122,6 +134,13 @@ func (r *PostRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Pos
 }
 
 func (r *PostRepository) List(ctx context.Context, params post.ListParams) (*post.Page, error) {
+	r.logger.DebugContext(
+		ctx,
+		"list posts",
+		slog.Int("limit", params.Limit),
+		slog.Bool("has_after", params.After != nil),
+	)
+
 	query := `
 		select
 			id,
@@ -206,6 +225,14 @@ func (r *PostRepository) SetCommentsEnabled(
 	authorID uuid.UUID,
 	enabled bool,
 ) (*domain.Post, error) {
+	r.logger.DebugContext(
+		ctx,
+		"set post comments enabled",
+		slog.String("post_id", postID.String()),
+		slog.String("author_id", authorID.String()),
+		slog.Bool("enabled", enabled),
+	)
+
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		r.logger.ErrorContext(

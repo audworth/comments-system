@@ -22,10 +22,22 @@ type CommentsRepository struct {
 }
 
 func NewCommentsRepository(db *pgxpool.Pool, logger *slog.Logger) *CommentsRepository {
-	return &CommentsRepository{db: db, logger: logger}
+	return &CommentsRepository{
+		db:     db,
+		logger: logger,
+	}
 }
 
 func (r *CommentsRepository) Publish(ctx context.Context, newComm *domain.Comment) (*domain.Comment, error) {
+	r.logger.DebugContext(
+		ctx,
+		"publish comment",
+		slog.String("comment_id", newComm.ID.String()),
+		slog.String("post_id", newComm.PostID.String()),
+		slog.String("author_id", newComm.AuthorID.String()),
+		slog.Bool("has_parent", newComm.ParentID != nil),
+	)
+
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		r.logger.ErrorContext(
@@ -148,6 +160,8 @@ func (r *CommentsRepository) Publish(ctx context.Context, newComm *domain.Commen
 }
 
 func (r *CommentsRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Comment, error) {
+	r.logger.DebugContext(ctx, "get comment", slog.String("comment_id", id.String()))
+
 	row := r.db.QueryRow(ctx, `
 		select
 			id,
@@ -175,7 +189,7 @@ func (r *CommentsRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain
 		}
 		r.logger.ErrorContext(
 			ctx,
-			"failed to get commen",
+			"failed to get comment",
 			slog.String("comment_id", id.String()),
 			slog.Any("error", err),
 		)
@@ -186,6 +200,15 @@ func (r *CommentsRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain
 }
 
 func (r *CommentsRepository) List(ctx context.Context, params comment.ListParams) (*comment.Page, error) {
+	r.logger.DebugContext(
+		ctx,
+		"list comments",
+		slog.String("post_id", params.PostID.String()),
+		slog.Bool("has_parent", params.ParentID != nil),
+		slog.Int("limit", params.Limit),
+		slog.Bool("has_after", params.After != nil),
+	)
+
 	query, args := makeListQuery(&params)
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
@@ -213,6 +236,8 @@ func (r *CommentsRepository) List(ctx context.Context, params comment.ListParams
 }
 
 func (r *CommentsRepository) ListBatch(ctx context.Context, params []comment.ListParams) ([]*comment.Page, error) {
+	r.logger.DebugContext(ctx, "list comment pages", slog.Int("batch_size", len(params)))
+
 	pages := make([]*comment.Page, len(params))
 	if len(params) == 0 {
 		return pages, nil
